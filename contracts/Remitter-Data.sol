@@ -7,9 +7,9 @@ contract Remitter_Data {
   IERC20 public immutable native;
 
   uint public immutable startTime;
-  uint public DEFAULT_FULL = 80 hours;
-  uint public DEFAULT_PART = 60 hours;
-  uint public DEFAULT_INTERN = 40 hours;
+  //uint public DEFAULT_FULL = 80 hours;
+  //uint public DEFAULT_PART = 60 hours;
+  //uint public DEFAULT_INTERN = 40 hours;
 
   // money that needs to be paid out or received
   uint public totalPayroll;

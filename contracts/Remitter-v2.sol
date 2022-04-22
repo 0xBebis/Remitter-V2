@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.11;
 
-import "@openzeppelin/contracts/math/Math.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./Remitter-Data.sol";
 
 contract Remitterv2 is Remitter_Data {
 
-  constructor(uint native, uint start) Remitter_Data(native, start) {}
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor(address native, uint start) Remitter_Data(native, start) {}
 
     /*
      | @dev admin function to add credit directly to contractor account
@@ -229,7 +230,7 @@ contract Remitterv2 is Remitter_Data {
     | @dev returns current credits and debits to contractor's account
     | @param contractorId - idenfication number of contractor
     */
-    function checkBalances(uint contractorId) public returns (uint credit, uint debit) {
+    function checkBalances(uint contractorId) public view returns (uint credit, uint debit) {
       return(creditsToUser[contractorId], debitsToUser[contractorId]);
     }
 
@@ -366,7 +367,7 @@ contract Remitterv2 is Remitter_Data {
       contractors[contractorId].cyclesPaid = 0;
     }
 
-    function authorizeAgent(uint contractorId, uint walletAddress) public {
+    function authorizeAgent(uint contractorId, address walletAddress) public {
       ownerOrAdmin(contractorId);
       authorizedWallet[contractorId][walletAddress] = true;
     }
@@ -384,8 +385,11 @@ contract Remitterv2 is Remitter_Data {
         "caller cannot perform this action");
     }
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {}
+    function advanceCycle() external {
+      onlyAdmin();
+      cycleCount++;
+      //_advanceCycle();
+    }
 
   /*  function rescueLostTokens(address token, address to, uint256 amount) public onlyRole(RESCUER_ROLE){
     	IERC20Upgradeable(token).transfer(to, amount);
