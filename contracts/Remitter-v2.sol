@@ -292,7 +292,6 @@ contract Remitterv2 is Remitter_Data {
     function owedPayments(uint contractorId) public view returns (uint) {
       PaymentPlan storage plan = paymentPlans[contractorId];
       if (plan.debt > plan.paid) {
-        uint paymentsOwed = cycleCount - plan.startingCycle;
         uint total = plan.debt - plan.paid;
         return Math.min(total, plan.perCycle);
       } else {
@@ -315,8 +314,7 @@ contract Remitterv2 is Remitter_Data {
       string memory name,
       address walletAddress,
       uint perCycle,
-      uint startingCycle,
-      uint hourlyRate
+      uint startingCycle
     ) public {
       onlyAdmin();
       require(contractors[contractorId].wallet == address(0), "ID is already taken");
@@ -372,15 +370,15 @@ contract Remitterv2 is Remitter_Data {
       authorizedWallet[contractorId][walletAddress] = true;
     }
 
-    function onlyAdmin() internal {
+    function onlyAdmin() internal view {
       require(isAdmin[msg.sender] || isSuperAdmin[msg.sender], "not admin or super admin");
     }
 
-    function onlySuperAdmin() internal {
+    function onlySuperAdmin() internal view {
       require(isSuperAdmin[msg.sender], "not super admin");
     }
 
-    function ownerOrAdmin(uint contractorId) internal {
+    function ownerOrAdmin(uint contractorId) internal view {
       require(isAdmin[msg.sender] || authorizedWallet[contractorId][msg.sender],
         "caller cannot perform this action");
     }
