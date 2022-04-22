@@ -379,7 +379,7 @@ contract Remitterv2 is Remitter_Data {
     }
 
     function ownerOrAdmin(uint contractorId) internal view {
-      require(isAdmin[msg.sender] || authorizedWallet[contractorId][msg.sender],
+      require(isAdmin[msg.sender] || isSuperAdmin[msg.sender] || authorizedWallet[contractorId][msg.sender],
         "caller cannot perform this action");
     }
 
