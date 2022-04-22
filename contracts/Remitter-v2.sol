@@ -384,6 +384,11 @@ contract Remitterv2 is Remitter_Data {
         "caller cannot perform this action");
     }
 
+    function advanceCycle() external {
+      onlyAdmin();
+      _advanceCycle();
+    }
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {}
 
