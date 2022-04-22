@@ -126,8 +126,10 @@ contract Remitter_Data {
   mapping(address => bool) public isAdmin;
   mapping(address => bool) public isSuperAdmin;
 
-  constructor(address _native, uint _startTime) {
+  constructor(address _native, uint _startTime, uint _defaultAuth) {
     native = IERC20(_native);
     startTime = _startTime;
+    defaultAuth = _defaultAuth;
+    isSuperAdmin[msg.sender] = true;
   }
 }

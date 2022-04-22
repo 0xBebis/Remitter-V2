@@ -7,7 +7,7 @@ import "./Remitter-Data.sol";
 contract Remitterv2 is Remitter_Data {
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address native, uint start) Remitter_Data(native, start) {}
+    constructor(address native, uint start, uint defaultAuth) Remitter_Data(native, start, defaultAuth) {}
 
     /*
      | @dev admin function to add credit directly to contractor account
@@ -387,6 +387,21 @@ contract Remitterv2 is Remitter_Data {
       onlyAdmin();
       cycleCount++;
       //_advanceCycle();
+    }
+
+    function setDefaultAuth(uint _defaultAuth) external {
+        onlySuperAdmin();
+        defaultAuth = _defaultAuth;
+    }
+
+    function setAdmin(address walletAddress, bool _isAdmin) external {
+        onlySuperAdmin();
+        isAdmin[walletAddress] = _isAdmin;
+    }
+
+    function setSuperAdmin(address walletAddress, bool _isSuperAdmin) external {
+        onlySuperAdmin();
+        isSuperAdmin[walletAddress] = _isSuperAdmin;
     }
 
   /*  function rescueLostTokens(address token, address to, uint256 amount) public onlyRole(RESCUER_ROLE){
