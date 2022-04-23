@@ -418,8 +418,9 @@ contract Remitterv2 is Remitter_Data {
       isSuperAdmin[walletAddress] = _isSuperAdmin;
     }
 
-  /*  function rescueLostTokens(address token, address to, uint256 amount) public onlyRole(RESCUER_ROLE){
-    	IERC20Upgradeable(token).transfer(to, amount);
+    function rescueLostTokens(address token, address to, uint256 amount) external {
+      onlySuperAdmin();
+      require(token != address(native), "cannot bypass native token accounting");
+      IERC20(token).transfer(to, amount);
     }
-*/
 }
