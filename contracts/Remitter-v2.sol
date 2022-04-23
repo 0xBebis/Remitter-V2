@@ -320,11 +320,13 @@ contract Remitterv2 is Remitter_Data {
       uint startingCycle
     ) public {
       onlyAdmin();
+      require (contractorId != 0, "ID cannot be 0");
       require(contractors[contractorId].wallet == address(0), "ID is already taken");
       changeName(contractorId, name);
       changeWallet(contractorId, walletAddress);
       changeSalary(contractorId, perCycle);
       changeStartingCycle(contractorId, startingCycle);
+      getId[walletAddress] = contractorId;
     }
     /*
      | @dev changes the contractor's reference name
@@ -339,7 +341,9 @@ contract Remitterv2 is Remitter_Data {
     function changeWallet(uint contractorId, address newWallet) public {
       ownerOrAdmin(contractorId);
       require(newWallet != address(0), "changing wallet to zero address");
+      delete getId[contractors[contractorId].wallet];
       contractors[contractorId].wallet = newWallet;
+      getId[newWallet] = contractorId;
     }
 
     function changeSalary(uint contractorId, uint newSalary) public {
