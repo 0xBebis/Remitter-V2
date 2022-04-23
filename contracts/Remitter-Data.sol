@@ -8,9 +8,6 @@ contract Remitter_Data {
   IERC20 public immutable native;
 
   uint public immutable startTime;
-  //uint public DEFAULT_FULL = 80 hours;
-  //uint public DEFAULT_PART = 60 hours;
-  //uint public DEFAULT_INTERN = 40 hours;
 
   // money that needs to be paid out or received
   uint public totalPayroll;
@@ -57,12 +54,10 @@ contract Remitter_Data {
   /*
    | @dev represents any party that will be paid by the remitter
    | @property name - the reference name for this contractor
-   | @property wallet_address - the wallet address for this contractor
-   | @property base_hourly_rate - the amount this contractor is paid per hour
-   | @property base_period - the amount of hours this contractor is expected to work per pay period
-   | @property starting_cycle - the cycle which this person will receive their first payment.
-   |                             this is only relevant for people receiving regular payments - set to 0 otherwise.
-   | @property cycles_paid - the amount of payments that have been accounted for since the starting cycle.
+   | @property wallet - the wallet address for this contractor
+   | @property perCycle - the amount this contractor will be owed each cycle
+   | @property startingCycle - the cycle which this person will receive their first payment.
+   | @property cyclesPaid - the amount of payments that have been accounted for since the starting cycle.
   */
 
   struct Contractor {
@@ -71,7 +66,6 @@ contract Remitter_Data {
     uint perCycle;
     uint startingCycle;
     uint cyclesPaid;
-    uint hourlyRate;
   }
 
   struct PaymentPlan {

@@ -301,13 +301,12 @@ contract Remitterv2 is Remitter_Data {
 
     /*
      | @dev registers a new payee to the system
-     | @param _name - the reference name for this contractor
-     | @param _wallet_address - the wallet address for this contractor
-     | @param _base_hourly_rate - the amount this contractor is paid per hour
-     | @param _base_period - the amount of hours this contractor is expected to work per pay period
-     | @param _starting_cycle - the cycle which this person will receive their first payment.
+     | @param contractorId - this contractor's id
+     | @param name - the reference name for this contractor
+     | @param walletAddress - the wallet address for this contractor
+     | @param perCycle - the amount this contractor will be owed each cycle
+     | @param startingCycle - the cycle which this person will receive their first payment.
      |                           this is only relevant for people receiving regular payments - set to 0 otherwise.
-     | @return contractorId - this contractor's id
     */
     function addContractor(
       uint contractorId,
@@ -343,11 +342,6 @@ contract Remitterv2 is Remitter_Data {
       onlyAdmin();
       require(newSalary <= maxSalary, "new salary is higher than maximum");
       contractors[contractorId].perCycle = newSalary;
-    }
-
-    function changeHourly(uint contractorId, uint newRate) public {
-      onlyAdmin();
-      contractors[contractorId].hourlyRate = newRate;
     }
 
     //TODO: pay out current before update
@@ -386,7 +380,6 @@ contract Remitterv2 is Remitter_Data {
     function advanceCycle() external {
       onlyAdmin();
       cycleCount++;
-      //_advanceCycle();
     }
 
     function setDefaultAuth(uint _defaultAuth) external {
