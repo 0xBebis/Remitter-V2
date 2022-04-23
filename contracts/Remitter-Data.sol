@@ -7,8 +7,6 @@ contract Remitter_Data {
 
   IERC20 public immutable native;
 
-  uint public immutable startTime;
-
   // money that needs to be paid out or received
   uint public totalPayroll;
   uint public totalPendingCredits;
@@ -78,9 +76,8 @@ contract Remitter_Data {
   mapping(address => bool) public isAdmin;
   mapping(address => bool) public isSuperAdmin;
 
-  constructor(address _native, uint _startTime, uint _defaultAuth, uint _maxSalary) {
+  constructor(address _native, uint _defaultAuth, uint _maxSalary) {
     native = IERC20(_native);
-    startTime = _startTime;
     defaultAuth = _defaultAuth;
     maxSalary = _maxSalary;
     isSuperAdmin[msg.sender] = true;

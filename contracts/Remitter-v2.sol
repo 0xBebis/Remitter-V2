@@ -9,10 +9,9 @@ contract Remitterv2 is Remitter_Data {
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(
       address native,
-      uint start,
       uint defaultAuth,
       uint maxSalary
-    ) Remitter_Data(native, start, defaultAuth, maxSalary) {}
+    ) Remitter_Data(native, defaultAuth, maxSalary) {}
 
     /*
      | @dev admin function to add credit directly to contractor account
