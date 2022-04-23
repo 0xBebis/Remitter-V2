@@ -325,7 +325,6 @@ contract Remitterv2 is Remitter_Data {
       changeWallet(contractorId, walletAddress);
       changeSalary(contractorId, perCycle);
       changeStartingCycle(contractorId, startingCycle);
-      getId[walletAddress] = contractorId;
       totalWorkers++;
     }
     /*
