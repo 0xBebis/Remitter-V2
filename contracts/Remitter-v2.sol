@@ -207,7 +207,6 @@ contract Remitterv2 is Remitter_Data {
      | @return credit - contractor credit after settlement
      | @return debit - contractor debit after settlement
     */
-
     function _settleAccounts(uint contractorId) internal returns (uint credit, uint debit) {
       (uint credits, uint debits) = checkBalances(contractorId);
       if (credits > debits) {
@@ -383,18 +382,23 @@ contract Remitterv2 is Remitter_Data {
     }
 
     function setDefaultAuth(uint _defaultAuth) external {
-        onlySuperAdmin();
-        defaultAuth = _defaultAuth;
+      onlySuperAdmin();
+      defaultAuth = _defaultAuth;
+    }
+
+    function setMaxSalary(uint _maxSalary) external {
+      onlySuperAdmin();
+      maxSalary = _maxSalary;
     }
 
     function setAdmin(address walletAddress, bool _isAdmin) external {
-        onlySuperAdmin();
-        isAdmin[walletAddress] = _isAdmin;
+      onlySuperAdmin();
+      isAdmin[walletAddress] = _isAdmin;
     }
 
     function setSuperAdmin(address walletAddress, bool _isSuperAdmin) external {
-        onlySuperAdmin();
-        isSuperAdmin[walletAddress] = _isSuperAdmin;
+      onlySuperAdmin();
+      isSuperAdmin[walletAddress] = _isSuperAdmin;
     }
 
   /*  function rescueLostTokens(address token, address to, uint256 amount) public onlyRole(RESCUER_ROLE){
