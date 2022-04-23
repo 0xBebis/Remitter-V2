@@ -6,7 +6,6 @@ import "./Remitter-Data.sol";
 
 contract Remitterv2 is Remitter_Data {
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(
       address native,
       uint defaultAuth,
@@ -45,8 +44,8 @@ contract Remitterv2 is Remitter_Data {
      | @param amount - quantity of tokens to pay
     */
     function payCredit(uint contractorId, uint amount) public {
-      native.transferFrom(msg.sender, address(this), amount);
       _updateCredits(contractorId, amount);
+      native.transferFrom(msg.sender, address(this), amount);
     }
 
     //todo: add wallet auth
