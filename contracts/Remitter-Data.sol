@@ -19,12 +19,6 @@ contract Remitter_Data {
   uint public totalDebits;
   uint public totalWorkers;
 
-  struct Cycle {
-    uint credits;
-    uint debits;
-    uint workers;
-  }
-
   /*
    | @dev represents any party that will be paid by the remitter
    | @property name - the reference name for this contractor
@@ -49,8 +43,9 @@ contract Remitter_Data {
     uint paid;
   }
 
-  event newCredit(address indexed caller, uint indexed contractorId, uint time, uint amount);
-  event newDebit(address indexed caller, uint indexed contractorId, uint time, uint amount);
+  event NewCredit(address indexed caller, uint indexed contractorId, uint time, uint amount);
+  event NewDebit(address indexed caller, uint indexed contractorId, uint time, uint amount);
+  event AdvanceCycle(uint indexed cycleCount, uint credits, uint debits, uint workers);
 
   /*
    | @dev iterable mapping of contractors to their IDs
@@ -65,7 +60,6 @@ contract Remitter_Data {
   mapping(address => uint) public getId;
 
   uint cycleCount;
-  mapping (uint => Cycle) public cycleSnapshots;
 
   // from user POV
   mapping(uint => uint) internal creditsToUser;

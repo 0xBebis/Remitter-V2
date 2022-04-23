@@ -141,7 +141,7 @@ contract Remitterv2 is Remitter_Data {
       _incrementPendingCredits(contractorId, amount);
       _updateOwed(contractorId);
       _settleAccounts(contractorId);
-      emit newCredit(msg.sender, contractorId, block.timestamp, amount);
+      emit NewCredit(msg.sender, contractorId, block.timestamp, amount);
     }
 
     /*
@@ -155,7 +155,7 @@ contract Remitterv2 is Remitter_Data {
       _incrementPendingDebits(contractorId, amount);
       _updateOwed(contractorId);
       _settleAccounts(contractorId);
-      emit newDebit(msg.sender, contractorId, block.timestamp, amount);
+      emit NewDebit(msg.sender, contractorId, block.timestamp, amount);
     }
 
     /*
@@ -327,6 +327,7 @@ contract Remitterv2 is Remitter_Data {
       changeSalary(contractorId, perCycle);
       changeStartingCycle(contractorId, startingCycle);
       getId[walletAddress] = contractorId;
+      totalWorkers++;
     }
     /*
      | @dev changes the contractor's reference name
@@ -393,7 +394,11 @@ contract Remitterv2 is Remitter_Data {
 
     function advanceCycle() external {
       onlyAdmin();
-      cycleCount++;
+      _advanceCycle();
+    }
+
+    function _advanceCycle() internal {
+      emit AdvanceCycle(cycleCount++, totalCredits, totalDebits, totalWorkers);
     }
 
     function setDefaultAuth(uint _defaultAuth) external {
