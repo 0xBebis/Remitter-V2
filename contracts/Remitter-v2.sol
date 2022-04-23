@@ -48,30 +48,16 @@ contract Remitterv2 is Remitter_Data {
       native.transferFrom(msg.sender, address(this), amount);
     }
 
-    //todo: add wallet auth
-
     /*
-     | @dev contractor function to receive money from Remitter to approved wallet
-     | @param contractorId - idenfication number of contractor
-     | @param amount - quantity of tokens to receive
-    */
-    function pullPayment(uint contractorId, uint amount) public {
-      require(authorizedWallet[contractorId][msg.sender], "not authorized to receive payment for this ID");
-      require((realCredit(contractorId) + owed(contractorId)) >= amount, "not enough credit");
-      _updateDebits(contractorId, amount);
-      native.transfer(msg.sender, amount);
-    }
-
-    /*
-     | @dev admin function to send money from Remitter to contractor's approved wallet
+     | @dev function to send money from Remitter to contractor's approved wallet
      | @param contractorId - idenfication number of contractor
      | @param to - wallet to receive amount
      | @param amount - quantity of tokens to send
     */
-    function pushPayment(uint contractorId, address to, uint amount) public {
-      onlyAdmin();
+    function makePayment(uint contractorId, address to, uint amount) public {
+      ownerOrAdmin(contractorId);
       require(authorizedWallet[contractorId][to], "not authorized to receive payment for this ID");
-      require((realCredit(contractorId) + owed(contractorId)) >= amount, "not enough credit");
+      require(realCredit(contractorId) + owed(contractorId) >= amount, "not enough credit");
       _updateDebits(contractorId, amount);
       native.transfer(to, amount);
     }
@@ -356,8 +342,6 @@ contract Remitterv2 is Remitter_Data {
       contractors[contractorId].perCycle = newSalary;
     }
 
-    //TODO: pay out current before update
-
     /*
      | @dev changes the user's starting payment cycle - used to program breaks in the user's work
      | @param contractorId - id number for the contracter whose name you'd like to change
@@ -366,7 +350,7 @@ contract Remitterv2 is Remitter_Data {
     function changeStartingCycle(uint contractorId, uint newStart) public {
       ownerOrAdmin(contractorId);
       require(newStart >= cycleCount, "cannot start earlier than current time");
-      _updateOwed(contractorId);
+      makePayment(contractorId, contractors[contractorId].wallet, realCredit(contractorId) + owed(contractorId));
       contractors[contractorId].startingCycle = newStart;
       contractors[contractorId].cyclesPaid = 0;
     }
@@ -391,10 +375,6 @@ contract Remitterv2 is Remitter_Data {
 
     function advanceCycle() external {
       onlyAdmin();
-      _advanceCycle();
-    }
-
-    function _advanceCycle() internal {
       emit AdvanceCycle(cycleCount++, totalCredits, totalDebits, totalWorkers);
     }
 
