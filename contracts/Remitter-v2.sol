@@ -345,6 +345,12 @@ contract Remitterv2 is Remitter_Data {
     function changeSalary(uint contractorId, uint newSalary) public {
       onlyAdmin();
       require(newSalary <= maxSalary, "new salary is higher than maximum");
+      uint oldSalary = contractors[contractorId].perCycle;
+      if (oldSalary < newSalary) {
+        totalPayroll += newSalary - oldSalary;
+      } else {
+        totalPayroll -= oldSalary - newSalary;
+      }
       contractors[contractorId].perCycle = newSalary;
     }
 
