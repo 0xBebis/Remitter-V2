@@ -26,32 +26,6 @@ contract Remitter_Data {
   }
 
   /*
-   | @dev Credit to the organization's account
-   | @property payor - person paying the remitter contract
-   | @property time - time payment was received
-   | @property amount - amount of money received
-  */
-  struct Credit {
-    address payor;
-    uint contractorId;
-    uint time;
-    uint amount;
-  }
-
-  /*
-   | @dev Debit to the organization's account
-   | @property payee - person the remitter contract is paying
-   | @property time - time payment was allocated
-   | @property amount - amount of money allocated
-  */
-  struct Debit {
-    address payee;
-    uint contractorId;
-    uint time;
-    uint amount;
-  }
-
-  /*
    | @dev represents any party that will be paid by the remitter
    | @property name - the reference name for this contractor
    | @property wallet - the wallet address for this contractor
@@ -75,8 +49,8 @@ contract Remitter_Data {
     uint paid;
   }
 
-  event newCredit(address indexed caller, uint contractorId, uint time, uint amount);
-  event newDebit(address indexed caller, uint contractorId, uint time, uint amount);
+  event newCredit(address indexed caller, uint indexed contractorId, uint time, uint amount);
+  event newDebit(address indexed caller, uint indexed contractorId, uint time, uint amount);
 
   /*
    | @dev iterable mapping of contractors to their IDs
@@ -98,16 +72,6 @@ contract Remitter_Data {
   mapping(uint => uint) internal debitsToUser;
 
   /*
-   | @dev all credits and debits mapped to contractorId keys
-   |
-   |
-  */
-  Credit[] public allCredits;
-  Debit[] public allDebits;
-  mapping(uint => Credit[]) public userCredits;
-  mapping(uint => Debit[]) public userDebits;
-
-  /*
    | @dev authorized payments
    |
    |
@@ -120,10 +84,11 @@ contract Remitter_Data {
   mapping(address => bool) public isAdmin;
   mapping(address => bool) public isSuperAdmin;
 
-  constructor(address _native, uint _startTime, uint _defaultAuth) {
+  constructor(address _native, uint _startTime, uint _defaultAuth, uint _maxSalary) {
     native = IERC20(_native);
     startTime = _startTime;
     defaultAuth = _defaultAuth;
+    maxSalary = _maxSalary;
     isSuperAdmin[msg.sender] = true;
   }
 }

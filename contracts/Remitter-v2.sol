@@ -7,7 +7,12 @@ import "./Remitter-Data.sol";
 contract Remitterv2 is Remitter_Data {
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address native, uint start, uint defaultAuth) Remitter_Data(native, start, defaultAuth) {}
+    constructor(
+      address native,
+      uint start,
+      uint defaultAuth,
+      uint maxSalary
+    ) Remitter_Data(native, start, defaultAuth, maxSalary) {}
 
     /*
      | @dev admin function to add credit directly to contractor account
