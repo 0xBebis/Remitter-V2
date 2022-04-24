@@ -62,7 +62,7 @@ contract Remitterv2 is Remitter_Data {
       native.transfer(to, amount);
     }
 
-    //todo - add debt tracking
+    //TODO: add debt tracking
 
     /*
      | @dev admin function to create a pay-by-cycle plan for the contractor
@@ -82,7 +82,7 @@ contract Remitterv2 is Remitter_Data {
       plan.startingCycle = cycleCount;
     }
 
-    // todo add per-cycle tracking to ensure defaultAuth isn't abused
+    //TODO: add per-cycle tracking to ensure defaultAuth isn't abused
 
     /*
      | @dev function to check maximum authorized credit for contractor
@@ -376,6 +376,7 @@ contract Remitterv2 is Remitter_Data {
 
     function advanceCycle() external {
       onlyAdmin();
+      //TODO: require minimum amount of time passed/restrict to super admin?
       emit AdvanceCycle(cycleCount++, totalCredits, totalDebits, totalWorkers);
     }
 
