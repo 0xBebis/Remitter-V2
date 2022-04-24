@@ -401,6 +401,10 @@ contract Remitterv2 is Remitter_Data {
     function rescueLostTokens(address token, address to, uint256 amount) external {
       onlySuperAdmin();
       require(token != address(native), "cannot bypass native token accounting");
-      IERC20(token).transfer(to, amount);
+      if (token == address(0)) {
+        payable(to).transfer(amount);
+      } else {
+        IERC20(token).transfer(to, amount);
+      }
     }
 }
