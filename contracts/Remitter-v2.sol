@@ -328,6 +328,7 @@ contract Remitterv2 is Remitter_Data {
       delete getId[contractors[contractorId].wallet];
       contractors[contractorId].wallet = newWallet;
       getId[newWallet] = contractorId;
+      authorizedWallet[contractorId][newWallet] = true;
     }
 
     function changeSalary(uint contractorId, uint newSalary) public {
@@ -355,9 +356,9 @@ contract Remitterv2 is Remitter_Data {
       contractors[contractorId].cyclesPaid = 0;
     }
 
-    function authorizeAgent(uint contractorId, address walletAddress) public {
+    function authorizeAgent(uint contractorId, address walletAddress, bool authorize) public {
       ownerOrAdmin(contractorId);
-      authorizedWallet[contractorId][walletAddress] = true;
+      authorizedWallet[contractorId][walletAddress] = authorize;
     }
 
     function onlyAdmin() internal view {
