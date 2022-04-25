@@ -5,13 +5,13 @@ const { devAccount, reaperAccount, testAccount, ftmScan } = require('./secrets.j
 
 module.exports = {
   networks: {
-    hardhat: {
+    /*hardhat: {
       forking: {
         url: "https://rpc.ftm.tools/",
         blockNumber: 11238828,
         accounts: [reaperAccount]
       }
-    },
+    },*/
     test: {
       url: "https://rpc.testnet.fantom.network/",
       accounts: [testAccount]
