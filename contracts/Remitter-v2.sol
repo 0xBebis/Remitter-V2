@@ -243,13 +243,15 @@ contract Remitterv2 is Remitter_Data {
   function _updateOwed(uint contractorId) internal returns (uint) {
     (uint salaryOwed, uint cyclesOwed) = owedSalary(contractorId);
     if(salaryOwed > 0) {
-      _incrementPendingCredits(contractorId, owedPayments(contractorId));
+      _incrementPendingCredits(contractorId, salaryOwed);
       contractors[contractorId].cyclesPaid += cyclesOwed;
     }
 
-    if (owedPayments(contractorId) > 0) {
-      _incrementPendingDebits(contractorId, owedPayments(contractorId));
+    uint paymentsOwed = owedPayments(contractorId);
+    if (paymentsOwed > 0) {
+      _incrementPendingDebits(contractorId, paymentsOwed);
     }
+    //TODO: return value is never used?
     return realCredit(contractorId);
   }
 
