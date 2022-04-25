@@ -6,6 +6,8 @@ import "./Remitter-Data.sol";
 
 contract Remitterv2 is Remitter_Data {
 
+    using SafeERC20 for IERC20;
+
     constructor(
       address native,
       uint defaultAuth,
@@ -45,7 +47,7 @@ contract Remitterv2 is Remitter_Data {
     */
     function payCredit(uint contractorId, uint amount) public {
       _updateCredits(contractorId, amount);
-      native.transferFrom(msg.sender, address(this), amount);
+      native.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     /*
@@ -59,7 +61,7 @@ contract Remitterv2 is Remitter_Data {
       require(authorizedWallet[contractorId][to], "not authorized to receive payment for this ID");
       require(realCredit(contractorId) + owed(contractorId) >= amount, "not enough credit");
       _updateDebits(contractorId, amount);
-      native.transfer(to, amount);
+      native.safeTransfer(to, amount);
     }
 
     //TODO: add debt tracking
@@ -406,7 +408,7 @@ contract Remitterv2 is Remitter_Data {
       if (token == address(0)) {
         payable(to).transfer(amount);
       } else {
-        IERC20(token).transfer(to, amount);
+        IERC20(token).safeTransfer(to, amount);
       }
     }
 }
