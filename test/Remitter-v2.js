@@ -30,6 +30,7 @@ describe('Remitter-v2', function () {
 
   it('One contractor', async function() {
     await remitter.addContractor(999, "bebis", emp1.address, 6000, 0);
+    await remitter.addPaymentPlan(999, 3000, 3);
 
     const totalWorkers = await remitter.totalWorkers();
     expect(totalWorkers).to.equal(1);
@@ -46,11 +47,13 @@ describe('Remitter-v2', function () {
     owedSalary = (await remitter.owedSalary(999))[0];
     expect(owedSalary).to.equal(12000);
 
-    await remitter.connect(emp1).makePayment(999, emp1.address, 9000);
+    await remitter.connect(emp1).sendPayment(999, emp1.address, 9000);
+    await usdc.connect(emp1).approve(remitter.address, 1000);
+    await remitter.connect(emp1).payCredit(999, 1000);
     const balance = await usdc.balanceOf(emp1.address);
-    expect(balance).to.equal(9000);
-    await expect(remitter.advanceCycle()).to.emit(remitter, 'AdvanceCycle').withArgs(2, 12000, 9000, 1);
-    await remitter.connect(emp1).makePayment(999, emp1.address, 9000);
-    await expect(remitter.connect(emp1).makePayment(999, emp1.address, 1)).to.be.reverted;
+    expect(balance).to.equal(8000);
+    await expect(remitter.advanceCycle()).to.emit(remitter, 'AdvanceCycle').withArgs(2, 13000, 10000, 1);
+    await remitter.connect(emp1).sendPayment(999, emp1.address, 6000);
+    await expect(remitter.connect(emp1).sendPayment(999, emp1.address, 1)).to.be.reverted;
   })
 })

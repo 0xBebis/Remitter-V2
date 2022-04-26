@@ -47,6 +47,8 @@ contract Remitterv2 is Remitter_Data {
   */
   function payCredit(uint contractorId, uint amount) public {
     _updateCredits(contractorId, amount);
+    PaymentPlan storage plan = paymentPlans[contractorId];
+    plan.paid += amount;
     native.safeTransferFrom(msg.sender, address(this), amount);
   }
 
@@ -56,7 +58,7 @@ contract Remitterv2 is Remitter_Data {
    | @param to - wallet to receive amount
    | @param amount - quantity of tokens to send
   */
-  function makePayment(uint contractorId, address to, uint amount) public {
+  function sendPayment(uint contractorId, address to, uint amount) public {
     ownerOrAdmin(contractorId);
     require(authorizedWallet[contractorId][to], "not authorized to receive payment for this ID");
     require(realCredit(contractorId) + owed(contractorId) >= amount, "not enough credit");
@@ -244,12 +246,14 @@ contract Remitterv2 is Remitter_Data {
     (uint salaryOwed, uint cyclesOwed) = owedSalary(contractorId);
     if(salaryOwed > 0) {
       _incrementPendingCredits(contractorId, salaryOwed);
-      contractors[contractorId].cyclesPaid += cyclesOwed;
     }
 
-    uint paymentsOwed = owedPayments(contractorId);
-    if (paymentsOwed > 0) {
-      _incrementPendingDebits(contractorId, paymentsOwed);
+    if (cyclesOwed != 0) {
+      contractors[contractorId].cyclesPaid += cyclesOwed;
+      uint paymentsOwed = owedPayments(contractorId);
+      if (paymentsOwed > 0) {
+        _incrementPendingDebits(contractorId, paymentsOwed);
+      }
     }
     //TODO: return value is never used?
     return realCredit(contractorId);
@@ -355,7 +359,7 @@ contract Remitterv2 is Remitter_Data {
   function changeStartingCycle(uint contractorId, uint newStart) public {
     ownerOrAdmin(contractorId);
     require(newStart >= cycleCount, "cannot start earlier than current time");
-    makePayment(contractorId, contractors[contractorId].wallet, realCredit(contractorId) + owed(contractorId));
+    sendPayment(contractorId, contractors[contractorId].wallet, realCredit(contractorId) + owed(contractorId));
     contractors[contractorId].startingCycle = newStart;
     contractors[contractorId].cyclesPaid = 0;
   }
