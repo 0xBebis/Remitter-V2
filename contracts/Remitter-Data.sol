@@ -69,9 +69,10 @@ contract Remitter_Data {
    |
   */
 
-  // NOTE: INITIALIZE ON CONSTRUCTION AND UPDATE
   uint public defaultAuth;
   mapping(uint => uint) public oneTimeAuth;
+  mapping(uint => uint) public addedCredits;
+  mapping(uint => uint) public lastCycleAdded;
 
   mapping(address => bool) public isAdmin;
   mapping(address => bool) public isSuperAdmin;

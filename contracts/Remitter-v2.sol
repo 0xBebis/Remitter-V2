@@ -22,10 +22,23 @@ contract Remitterv2 is Remitter_Data {
   function addCredit(uint contractorId, uint amount) external {
     onlyAdmin();
     require(contractors[contractorId].wallet != address(0), "contractor does not exist");
-    require(amount <= checkAuthorization(contractorId), "payment too large, seek authorization");
-    if (oneTimeAuth[contractorId] > 0 && amount > defaultAuth) {
+
+    uint totalAmount;
+    uint _cycleCount = cycleCount;
+    if (_cycleCount == lastCycleAdded[contractorId]) {
+      totalAmount = amount + addedCredits[contractorId];
+      require(totalAmount <= checkAuthorization(contractorId), "payment too large, seek authorization");
+      addedCredits[contractorId] += amount;
+    } else {
+      totalAmount = amount;
+      require(totalAmount <= checkAuthorization(contractorId), "payment too large, seek authorization");
+      lastCycleAdded[contractorId] = _cycleCount;
+      addedCredits[contractorId] = amount;
+    }
+    if (oneTimeAuth[contractorId] > 0 && totalAmount > defaultAuth) {
       oneTimeAuth[contractorId] = 0;
     }
+
     _updateCredits(contractorId, amount);
   }
 
@@ -88,8 +101,6 @@ contract Remitterv2 is Remitter_Data {
     plan.perCycle += (total / cycles);
     plan.startingCycle = cycleCount;
   }
-
-  //TODO: add per-cycle tracking to ensure defaultAuth isn't abused
 
   /*
    | @dev function to check maximum authorized credit for contractor
@@ -380,7 +391,7 @@ contract Remitterv2 is Remitter_Data {
   }
 
   function advanceCycle() external {
-    onlyAdmin();
+    onlySuperAdmin();
     //TODO: require minimum amount of time passed/restrict to super admin?
     emit AdvanceCycle(cycleCount++, totalCredits, totalDebits, totalWorkers);
   }
