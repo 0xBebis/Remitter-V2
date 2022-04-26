@@ -58,8 +58,11 @@ contract Remitterv2 is Remitter_Data {
    | @param to - wallet to receive amount
    | @param amount - quantity of tokens to send
   */
-  function sendPayment(uint contractorId, address to, uint amount) public {
+  function sendPayment(uint contractorId, address to, uint amount) external {
     ownerOrAdmin(contractorId);
+    _sendPayment(contractorId, to, amount);
+  }
+  function _sendPayment(uint contractorId, address to, uint amount) internal {
     require(authorizedWallet[contractorId][to], "not authorized to receive payment for this ID");
     require(realCredit(contractorId) + owed(contractorId) >= amount, "not enough credit");
     _updateDebits(contractorId, amount);
@@ -197,10 +200,8 @@ contract Remitterv2 is Remitter_Data {
   /*
    | @dev balances credits and debits, ensuring the remitter remains solvent
    | @param contractorId - idenfication number of contractor
-   | @return credit - contractor credit after settlement
-   | @return debit - contractor debit after settlement
   */
-  function _settleAccounts(uint contractorId) internal returns (uint credit, uint debit) {
+  function _settleAccounts(uint contractorId) internal {
     (uint credits, uint debits) = checkBalances(contractorId);
     if (credits > debits) {
       totalPendingCredits -= (credits - debits);
@@ -215,7 +216,6 @@ contract Remitterv2 is Remitter_Data {
       totalPendingDebits -= debits;
       _updateBalances(contractorId, 0, 0);
     }
-    return checkBalances(contractorId);
   }
 
   /*
@@ -240,11 +240,10 @@ contract Remitterv2 is Remitter_Data {
   /*
   | @dev update the credits and debits for user based on salary & payment plan
   | @param contractorId - idenfication number of contractor
-  | @return - contractor's current credit
   */
-  function _updateOwed(uint contractorId) internal returns (uint) {
+  function _updateOwed(uint contractorId) internal {
     (uint salaryOwed, uint cyclesOwed) = owedSalary(contractorId);
-    if(salaryOwed > 0) {
+    if(salaryOwed != 0) {
       _incrementPendingCredits(contractorId, salaryOwed);
     }
 
@@ -255,8 +254,6 @@ contract Remitterv2 is Remitter_Data {
         _incrementPendingDebits(contractorId, paymentsOwed);
       }
     }
-    //TODO: return value is never used?
-    return realCredit(contractorId);
   }
 
   /*
@@ -359,7 +356,7 @@ contract Remitterv2 is Remitter_Data {
   function changeStartingCycle(uint contractorId, uint newStart) public {
     ownerOrAdmin(contractorId);
     require(newStart >= cycleCount, "cannot start earlier than current time");
-    sendPayment(contractorId, contractors[contractorId].wallet, realCredit(contractorId) + owed(contractorId));
+    _sendPayment(contractorId, contractors[contractorId].wallet, realCredit(contractorId) + owed(contractorId));
     contractors[contractorId].startingCycle = newStart;
     contractors[contractorId].cyclesPaid = 0;
   }
