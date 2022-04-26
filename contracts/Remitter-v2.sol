@@ -77,7 +77,7 @@ contract Remitterv2 is Remitter_Data {
   }
   function _sendPayment(uint contractorId, address to, uint amount) internal {
     require(authorizedWallet[contractorId][to], "not authorized to receive payment for this ID");
-    require(realCredit(contractorId) + owed(contractorId) >= amount, "not enough credit");
+    require(maxPayable(contractorId) >= amount, "not enough credit");
     _updateDebits(contractorId, amount);
     native.safeTransfer(to, amount);
   }
@@ -238,6 +238,14 @@ contract Remitterv2 is Remitter_Data {
   }
 
   /*
+  | @dev returns current maximum amount payable to a contractor
+  | @param contractorId - idenfication number of contractor
+  */
+  function maxPayable(uint contractorId) public view returns (uint) {
+    return realCredit(contractorId) + owed(contractorId);
+  }
+
+  /*
   | @dev updates credits and debits for contractor's account, bypassing state updates
   | @param contractorId - idenfication number of contractor
   | @param newCredits - new credit value for user
@@ -318,7 +326,7 @@ contract Remitterv2 is Remitter_Data {
     address walletAddress,
     uint perCycle,
     uint startingCycle
-  ) public {
+  ) external {
     onlySuperAdmin();
     require (contractorId != 0, "ID cannot be 0");
     require(contractors[contractorId].wallet == address(0), "ID is already taken");
@@ -327,6 +335,13 @@ contract Remitterv2 is Remitter_Data {
     changeSalary(contractorId, perCycle);
     changeStartingCycle(contractorId, startingCycle);
     totalWorkers++;
+  }
+
+  function terminateContractor(uint contractorId) external {
+    onlyAdmin();
+    _sendPayment(contractorId, contractors[contractorId].wallet, maxPayable(contractorId));
+    changeSalary(contractorId, 0);
+    totalWorkers--;
   }
 
   /*
@@ -373,7 +388,7 @@ contract Remitterv2 is Remitter_Data {
   function changeStartingCycle(uint contractorId, uint newStart) public {
     ownerOrAdmin(contractorId);
     require(newStart >= cycleCount, "cannot start earlier than current time");
-    _sendPayment(contractorId, contractors[contractorId].wallet, realCredit(contractorId) + owed(contractorId));
+    _sendPayment(contractorId, contractors[contractorId].wallet, maxPayable(contractorId));
     contractors[contractorId].startingCycle = newStart;
     contractors[contractorId].cyclesPaid = 0;
   }
