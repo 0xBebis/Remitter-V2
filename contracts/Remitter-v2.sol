@@ -319,7 +319,7 @@ contract Remitterv2 is Remitter_Data {
     uint perCycle,
     uint startingCycle
   ) public {
-    onlyAdmin();
+    onlySuperAdmin();
     require (contractorId != 0, "ID cannot be 0");
     require(contractors[contractorId].wallet == address(0), "ID is already taken");
     changeName(contractorId, name);
@@ -328,6 +328,7 @@ contract Remitterv2 is Remitter_Data {
     changeStartingCycle(contractorId, startingCycle);
     totalWorkers++;
   }
+
   /*
    | @dev changes the contractor's reference name
    | @param contractorId - id number for the contracter whose name you'd like to change
@@ -338,8 +339,13 @@ contract Remitterv2 is Remitter_Data {
     contractors[contractorId].name = newName;
   }
 
+  /*
+   | @dev changes the contractor's primary wallet - does NOT deauthorize the old wallet
+   | @param contractorId - id number for the contracter whose name you'd like to change
+   | @param newWallet - the new wallet you'd like to assign to the contractor
+  */
   function changeWallet(uint contractorId, address newWallet) public {
-    ownerOrAdmin(contractorId);
+    ownerOrSuperAdmin(contractorId);
     require(newWallet != address(0), "changing wallet to zero address");
     delete getId[contractors[contractorId].wallet];
     contractors[contractorId].wallet = newWallet;
@@ -373,7 +379,7 @@ contract Remitterv2 is Remitter_Data {
   }
 
   function authorizeAgent(uint contractorId, address walletAddress, bool authorize) public {
-    ownerOrAdmin(contractorId);
+    ownerOrSuperAdmin(contractorId);
     authorizedWallet[contractorId][walletAddress] = authorize;
   }
 
@@ -387,6 +393,11 @@ contract Remitterv2 is Remitter_Data {
 
   function ownerOrAdmin(uint contractorId) internal view {
     require(isAdmin[msg.sender] || isSuperAdmin[msg.sender] || authorizedWallet[contractorId][msg.sender],
+      "caller cannot perform this action");
+  }
+
+  function ownerOrSuperAdmin(uint contractorId) internal view {
+    require(isSuperAdmin[msg.sender] || authorizedWallet[contractorId][msg.sender],
       "caller cannot perform this action");
   }
 
