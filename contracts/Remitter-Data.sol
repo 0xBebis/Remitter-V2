@@ -50,7 +50,6 @@ contract Remitter_Data {
    | @key nonce at the time the contractor is added to the system - their ID
   */
 
-  uint public nonce;
   uint public maxSalary;
   mapping(uint => Contractor) public contractors;
   mapping(uint => PaymentPlan) public paymentPlans;
