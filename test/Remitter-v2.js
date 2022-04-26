@@ -14,9 +14,10 @@ describe('Remitter-v2', function () {
 
     const Remitter = await ethers.getContractFactory('Remitterv2');
     remitter = await Remitter.deploy(usdc.address, 5000, 10000);
-    await remitter.deployed();
 
     await usdc.transfer(remitter.address, 1_000_000);
+
+    await remitter.setAdmin(admin.address, true);
   })
 
   it('Getters', async function() {
@@ -30,7 +31,7 @@ describe('Remitter-v2', function () {
 
   it('One contractor', async function() {
     await remitter.addContractor(999, "bebis", emp1.address, 6000, 0);
-    await remitter.addPaymentPlan(999, 3000, 3);
+    await remitter.connect(admin).addPaymentPlan(999, 3000, 3);
 
     const totalWorkers = await remitter.totalWorkers();
     expect(totalWorkers).to.equal(1);
@@ -55,5 +56,9 @@ describe('Remitter-v2', function () {
     await expect(remitter.advanceCycle()).to.emit(remitter, 'AdvanceCycle').withArgs(2, 13000, 10000, 1);
     await remitter.connect(emp1).sendPayment(999, emp1.address, 6000);
     await expect(remitter.connect(emp1).sendPayment(999, emp1.address, 1)).to.be.reverted;
+
+    await remitter.connect(admin).addCredit(999, 2500);
+    await remitter.connect(admin).addCredit(999, 2500);
+    await expect(remitter.connect(admin).addCredit(999, 1)).to.be.reverted;
   })
 })
