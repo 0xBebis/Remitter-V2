@@ -99,7 +99,6 @@ contract Remitterv2 is Remitter_Data {
     uint total = plan.debt - plan.paid + amount;
     plan.debt += amount;
     plan.perCycle += (total / cycles);
-    plan.startingCycle = cycleCount;
   }
 
   /*

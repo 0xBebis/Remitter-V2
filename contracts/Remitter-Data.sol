@@ -36,9 +36,8 @@ contract Remitter_Data {
 
   struct PaymentPlan {
     uint debt;
-    uint perCycle;
-    uint startingCycle;
     uint paid;
+    uint perCycle;
   }
 
   event NewCredit(address indexed caller, uint indexed contractorId, uint time, uint amount);
