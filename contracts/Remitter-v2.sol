@@ -58,7 +58,7 @@ contract Remitterv2 is Remitter_Data {
    | @param contractorId - idenfication number of contractor
    | @param amount - quantity of tokens to pay
   */
-  function payCredit(uint contractorId, uint amount) public {
+  function payCredit(uint contractorId, uint amount) external {
     _updateCredits(contractorId, amount);
     PaymentPlan storage plan = paymentPlans[contractorId];
     plan.paid += amount;
@@ -198,7 +198,7 @@ contract Remitterv2 is Remitter_Data {
   | @dev returns debits pending for contractor, ignoring owed
   | @param contractorId - idenfication number of contractor
   */
-  function realDebit(uint contractorId) public view returns (uint) {
+  function realDebit(uint contractorId) external view returns (uint) {
     (uint credit, uint debit) = checkBalances(contractorId);
     if (credit < debit) {
       return debit - credit;
@@ -392,7 +392,7 @@ contract Remitterv2 is Remitter_Data {
     contractors[contractorId].cyclesPaid = 0;
   }
 
-  function authorizeAgent(uint contractorId, address walletAddress, bool authorize) public {
+  function authorizeAgent(uint contractorId, address walletAddress, bool authorize) external {
     ownerOrSuperAdmin(contractorId);
     authorizedWallet[contractorId][walletAddress] = authorize;
   }
