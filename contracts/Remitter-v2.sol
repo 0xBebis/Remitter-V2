@@ -194,6 +194,7 @@ contract Remitterv2 is Remitter_Data {
     }
   }
 
+  //TODO: easily implementable in frontend code - is this function necessary (and do realCredit and checkBalances need to be public)?
   /*
   | @dev returns debits pending for contractor, ignoring owed
   | @param contractorId - idenfication number of contractor
@@ -336,6 +337,7 @@ contract Remitterv2 is Remitter_Data {
     totalWorkers++;
   }
 
+  //TODO: is this good enough? admin could reinstate through changeSalary without updating totalWorkers
   function terminateContractor(uint contractorId) external {
     onlyAdmin();
     _sendPayment(contractorId, contractors[contractorId].wallet, maxPayable(contractorId));
@@ -399,6 +401,7 @@ contract Remitterv2 is Remitter_Data {
   }
   function _changeStartingCycle(uint contractorId, uint newStart) internal {
     require(newStart >= cycleCount, "cannot start earlier than current time");
+    //TODO: do we want to actually send the payment or just update state?
     _sendPayment(contractorId, contractors[contractorId].wallet, maxPayable(contractorId));
     contractors[contractorId].startingCycle = newStart;
     contractors[contractorId].cyclesPaid = 0;
