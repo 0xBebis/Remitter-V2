@@ -329,17 +329,17 @@ contract Remitterv2 is Remitter_Data {
     onlySuperAdmin();
     require (contractorId != 0, "ID cannot be 0");
     require(contractors[contractorId].wallet == address(0), "ID is already taken");
-    changeName(contractorId, name);
-    changeWallet(contractorId, walletAddress);
-    changeSalary(contractorId, perCycle);
-    changeStartingCycle(contractorId, startingCycle);
+    _changeName(contractorId, name);
+    _changeWallet(contractorId, walletAddress);
+    _changeSalary(contractorId, perCycle);
+    _changeStartingCycle(contractorId, startingCycle);
     totalWorkers++;
   }
 
   function terminateContractor(uint contractorId) external {
     onlyAdmin();
     _sendPayment(contractorId, contractors[contractorId].wallet, maxPayable(contractorId));
-    changeSalary(contractorId, 0);
+    _changeSalary(contractorId, 0);
     totalWorkers--;
   }
 
@@ -348,8 +348,11 @@ contract Remitterv2 is Remitter_Data {
    | @param contractorId - id number for the contracter whose name you'd like to change
    | @param newName - the new name you'd like to assign to the contractor
   */
-  function changeName(uint contractorId, string memory newName) public {
+  function changeName(uint contractorId, string memory newName) external {
     ownerOrAdmin(contractorId);
+    _changeName(contractorId, newName);
+  }
+  function _changeName(uint contractorId, string memory newName) internal {
     contractors[contractorId].name = newName;
   }
 
@@ -358,8 +361,11 @@ contract Remitterv2 is Remitter_Data {
    | @param contractorId - id number for the contracter whose name you'd like to change
    | @param newWallet - the new wallet you'd like to assign to the contractor
   */
-  function changeWallet(uint contractorId, address newWallet) public {
+  function changeWallet(uint contractorId, address newWallet) external {
     ownerOrSuperAdmin(contractorId);
+    _changeWallet(contractorId, newWallet);
+  }
+  function _changeWallet(uint contractorId, address newWallet) internal {
     require(newWallet != address(0), "changing wallet to zero address");
     delete getId[contractors[contractorId].wallet];
     contractors[contractorId].wallet = newWallet;
@@ -367,8 +373,11 @@ contract Remitterv2 is Remitter_Data {
     authorizedWallet[contractorId][newWallet] = true;
   }
 
-  function changeSalary(uint contractorId, uint newSalary) public {
+  function changeSalary(uint contractorId, uint newSalary) external {
     onlyAdmin();
+    _changeSalary(contractorId, newSalary);
+  }
+  function _changeSalary(uint contractorId, uint newSalary) internal {
     require(newSalary <= maxSalary, "new salary is higher than maximum");
     uint oldSalary = contractors[contractorId].perCycle;
     if (oldSalary < newSalary) {
@@ -384,8 +393,11 @@ contract Remitterv2 is Remitter_Data {
    | @param contractorId - id number for the contracter whose name you'd like to change
    | @param name - the new base period for the contractor
   */
-  function changeStartingCycle(uint contractorId, uint newStart) public {
+  function changeStartingCycle(uint contractorId, uint newStart) external {
     ownerOrAdmin(contractorId);
+    _changeStartingCycle(contractorId, newStart);
+  }
+  function _changeStartingCycle(uint contractorId, uint newStart) internal {
     require(newStart >= cycleCount, "cannot start earlier than current time");
     _sendPayment(contractorId, contractors[contractorId].wallet, maxPayable(contractorId));
     contractors[contractorId].startingCycle = newStart;
