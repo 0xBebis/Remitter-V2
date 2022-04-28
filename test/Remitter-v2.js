@@ -51,10 +51,14 @@ describe('Remitter-v2', function () {
     await remitter.connect(emp1).sendPayment(999, emp1.address, 9000);
     await usdc.connect(emp1).approve(remitter.address, 1000);
     await remitter.connect(emp1).payCredit(999, 1000);
-    const balance = await usdc.balanceOf(emp1.address);
+    let balance = await usdc.balanceOf(emp1.address);
     expect(balance).to.equal(8000);
     await expect(remitter.advanceCycle()).to.emit(remitter, 'AdvanceCycle').withArgs(2, 13000, 10000, 1);
+    console.log((await usdc.balanceOf(emp1.address)).toString());
     await remitter.connect(emp1).sendPayment(999, emp1.address, 6000);
+    console.log((await usdc.balanceOf(emp1.address)).toString());
+    console.log((await remitter.owedPayments(999)).toString());
+    console.log((await remitter.maxPayable(999)).toString());
     await expect(remitter.connect(emp1).sendPayment(999, emp1.address, 1)).to.be.reverted;
 
     await remitter.connect(admin).addCredit(999, 2500);

@@ -2,9 +2,10 @@
 pragma solidity ^0.8.11;
 
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./Remitter-Data.sol";
 
-contract Remitterv2 is Remitter_Data {
+contract Remitterv2 is Remitter_Data, ReentrancyGuard {
 
   using SafeERC20 for IERC20;
 
@@ -72,14 +73,14 @@ contract Remitterv2 is Remitter_Data {
    | @param amount - quantity of tokens to send
   */
   function sendPayment(uint contractorId, address to, uint amount) external {
-    require(to != address(0), "transfer to zero address");
-    require(authorizedWallet[contractorId][to], "not authorized to receive payment for this ID");
-    require(maxPayable(contractorId) >= amount, "not enough credit");
     ownerOrAdmin(contractorId);
     _sendPayment(contractorId, to, amount);
   }
 
   function _sendPayment(uint contractorId, address to, uint amount) internal nonReentrant {
+    require(to != address(0), "transfer to zero address");
+    require(authorizedWallet[contractorId][to], "not authorized to receive payment for this ID");
+    require(maxPayable(contractorId) >= amount, "not enough credit");
     _updateDebits(contractorId, amount);
     native.safeTransfer(to, amount);
   }
@@ -130,6 +131,18 @@ contract Remitterv2 is Remitter_Data {
    + and zero sum behavior should be achieved without needing to perform
    + too many operations within high-level functions.
   */
+
+  function updateState(uint[] calldata contractorIds) external {
+    onlyAdmin();
+    for (uint i=0; i<contractorIds.length; i++) {
+      _updateState(contractorIds[i]);
+    }
+  }
+
+  function _updateState(uint contractorId) internal {
+    _updateOwed(contractorId);
+    _settleAccounts(contractorId);
+  }
 
   /*
    | @dev core accounting function - adds credits to contractor's account,
@@ -228,7 +241,14 @@ contract Remitterv2 is Remitter_Data {
   | @param contractorId - idenfication number of contractor
   */
   function maxPayable(uint contractorId) public view returns (uint) {
-    return realCredit(contractorId) + owed(contractorId);
+    (uint owed,) = owedSalary(contractorId);
+    uint payments = owedPayments(contractorId);
+    owed += realCredit(contractorId);
+    if (payments >= owed) {
+      return 0;
+    } else {
+      return owed - payments;
+    }
   }
 
   /*
@@ -258,21 +278,6 @@ contract Remitterv2 is Remitter_Data {
       if (paymentsOwed > 0) {
         _incrementPendingDebits(contractorId, paymentsOwed);
       }
-    }
-  }
-
-  /*
-  | @dev check the amount of money owed to the contractor via salary after payments are removed
-  | @param contractorId - idenfication number of contractor
-  | @return - credit owed to contractor, which will be added on next state update
-  */
-  function owed(uint contractorId) public view returns (uint) {
-    (uint moneyOwed,) = owedSalary(contractorId);
-    uint payments = owedPayments(contractorId);
-    if (payments > moneyOwed) {
-      return 0;
-    } else {
-      return moneyOwed - owedPayments(contractorId);
     }
   }
 
