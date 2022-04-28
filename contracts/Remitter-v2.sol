@@ -142,7 +142,7 @@ contract Remitterv2 is Remitter_Data {
     _incrementPendingCredits(contractorId, amount);
     _updateOwed(contractorId);
     _settleAccounts(contractorId);
-    emit NewCredit(msg.sender, contractorId, block.timestamp, amount);
+    emit NewCredit(msg.sender, contractorId, amount);
   }
 
   /*
@@ -156,7 +156,7 @@ contract Remitterv2 is Remitter_Data {
     _incrementPendingDebits(contractorId, amount);
     _updateOwed(contractorId);
     _settleAccounts(contractorId);
-    emit NewDebit(msg.sender, contractorId, block.timestamp, amount);
+    emit NewDebit(msg.sender, contractorId, amount);
   }
 
   /*

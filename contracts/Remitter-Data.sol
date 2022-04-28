@@ -41,8 +41,8 @@ contract Remitter_Data {
   }
 
   //TODO: events are inherently linked to a timestamp - is time parameter necessary?
-  event NewCredit(address indexed caller, uint indexed contractorId, uint time, uint amount);
-  event NewDebit(address indexed caller, uint indexed contractorId, uint time, uint amount);
+  event NewCredit(address indexed caller, uint indexed contractorId, uint amount);
+  event NewDebit(address indexed caller, uint indexed contractorId, uint amount);
   event AdvanceCycle(uint indexed cycleCount, uint credits, uint debits, uint workers);
 
   /*
