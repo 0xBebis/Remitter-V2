@@ -1,17 +1,18 @@
 require("@nomiclabs/hardhat-waffle");
 require("./secrets.json");
+require("hardhat-gas-reporter");
 
 const { devAccount, reaperAccount, testAccount, ftmScan } = require('./secrets.json');
 
 module.exports = {
   networks: {
-    hardhat: {
+    /*hardhat: {
       forking: {
         url: "https://rpc.ftm.tools/",
         blockNumber: 11238828,
         accounts: [reaperAccount]
       }
-    },
+    },*/
     test: {
       url: "https://rpc.testnet.fantom.network/",
       accounts: [testAccount]
@@ -35,24 +36,6 @@ module.exports = {
           }
         }
       },
-      {
-        version: "0.8.0",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs:200
-          }
-        }
-      },
-      {
-        version: "0.5.0",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs:200
-          }
-        }
-      }
     ]
   },
   paths: {
@@ -60,6 +43,11 @@ module.exports = {
     tests: "./test",
     cache: "./cache",
     artifacts: "./artifacts"
+  },
+  gasReporter: {
+    currency: 'USD',
+    token: 'FTM',
+    coinmarketcap: process.env.COINMARKETCAP,
   },
   mocha: {
     timeout: 200000
