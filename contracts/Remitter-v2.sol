@@ -328,8 +328,10 @@ contract Remitterv2 is Remitter_Data {
 
   function _initializeWallet(uint contractorId, address newWallet) internal {
     contractors[contractorId].wallet = newWallet;
-    getId[newWallet] = contractorId;
-    authorizedWallet[contractorId][newWallet] = true;
+    if (newWallet != address(0)) {
+      getId[newWallet] = contractorId;
+      authorizedWallet[contractorId][newWallet] = true;
+    }
   }
 
   function changeSalary(uint contractorId, uint newSalary) external {
