@@ -405,11 +405,13 @@ contract Remitterv2 is Remitter_Data {
   function setAdmin(address walletAddress, bool _isAdmin) external {
     onlySuperAdmin();
     isAdmin[walletAddress] = _isAdmin;
+    emit AdminChanged(walletAddress, _isAdmin);
   }
 
   function setSuperAdmin(address walletAddress, bool _isSuperAdmin) external {
     onlySuperAdmin();
     isSuperAdmin[walletAddress] = _isSuperAdmin;
+    emit SuperAdminChanged(walletAddress, _isSuperAdmin);
   }
 
   function rescueLostTokens(address token, address to, uint256 amount) external {
