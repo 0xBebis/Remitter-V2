@@ -301,7 +301,7 @@ contract Remitterv2 is Remitter_Data {
 
     emit TerminateContractor(contractorId);
 
-    native.transfer(contractors[contractorId].wallet, amount);
+    native.safeTransfer(contractors[contractorId].wallet, amount);
   }
 
   /*
@@ -370,7 +370,7 @@ contract Remitterv2 is Remitter_Data {
 
     emit ChangeStartingCycle(contractorId, newStart);
 
-    native.transfer(contractor.wallet, amount);
+    native.safeTransfer(contractor.wallet, amount);
   }
 
   function authorizeAgent(uint contractorId, address walletAddress, bool authorize) external {
