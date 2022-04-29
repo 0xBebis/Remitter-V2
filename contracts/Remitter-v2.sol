@@ -323,6 +323,7 @@ contract Remitterv2 is Remitter_Data {
     ownerOrSuperAdmin(contractorId);
     require(newWallet != address(0), "changing wallet to zero address");
     _changeWallet(contractorId, newWallet);
+    emit ChangeWallet(contractorId, newWallet);
   }
 
   function _changeWallet(uint contractorId, address newWallet) internal {
@@ -376,6 +377,7 @@ contract Remitterv2 is Remitter_Data {
   function authorizeAgent(uint contractorId, address walletAddress, bool authorize) external {
     ownerOrSuperAdmin(contractorId);
     authorizedWallet[contractorId][walletAddress] = authorize;
+    emit AuthorizeWallet(contractorId, walletAddress, authorize);
   }
 
   function onlyAdmin() internal view {

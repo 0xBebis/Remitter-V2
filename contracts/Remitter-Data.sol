@@ -43,6 +43,8 @@ contract Remitter_Data {
   event TerminateContractor(uint indexed contractorId);
   event ChangeSalary(uint indexed contractorId, uint perCycle);
   event ChangeStartingCycle(uint indexed contractorId, uint startingCycle);
+  event ChangeWallet(uint indexed contractorId, address indexed wallet);
+  event AuthorizeWallet(uint indexed contractorId, address indexed wallet, bool authorize);
 
   /*
    | @dev iterable mapping of contractors to their IDs
