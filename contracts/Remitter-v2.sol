@@ -284,6 +284,8 @@ contract Remitterv2 is Remitter_Data {
 
     totalPayroll += perCycle;
     totalWorkers++;
+
+    emit AddContractor(contractorId, walletAddress, name, startingCycle, perCycle);
   }
 
   function terminateContractor(uint contractorId) external {
@@ -296,6 +298,8 @@ contract Remitterv2 is Remitter_Data {
 
     contractors[contractorId].perCycle = 0;
     _changeWallet(contractorId, address(0));
+
+    emit TerminateContractor(contractorId);
 
     native.transfer(contractors[contractorId].wallet, amount);
   }
@@ -345,6 +349,7 @@ contract Remitterv2 is Remitter_Data {
       totalPayroll -= oldSalary - newSalary;
     }
     contractors[contractorId].perCycle = newSalary;
+    emit ChangeSalary(contractorId, newSalary);
   }
 
   /*
@@ -362,6 +367,8 @@ contract Remitterv2 is Remitter_Data {
     Contractor storage contractor = contractors[contractorId];
     contractor.startingCycle = newStart;
     contractor.cyclesPaid = 0;
+
+    emit ChangeStartingCycle(contractorId, newStart);
 
     native.transfer(contractor.wallet, amount);
   }

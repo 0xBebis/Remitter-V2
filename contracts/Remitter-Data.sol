@@ -39,6 +39,10 @@ contract Remitter_Data {
   event AdvanceCycle(uint indexed cycleCount, uint credits, uint debits, uint workers);
   event AdminChanged(address indexed addr, bool isAdmin);
   event SuperAdminChanged(address indexed addr, bool isSuperAdmin);
+  event AddContractor(uint indexed contractorId, address indexed wallet, string name, uint startingCycle, uint perCycle);
+  event TerminateContractor(uint indexed contractorId);
+  event ChangeSalary(uint indexed contractorId, uint perCycle);
+  event ChangeStartingCycle(uint indexed contractorId, uint startingCycle);
 
   /*
    | @dev iterable mapping of contractors to their IDs
