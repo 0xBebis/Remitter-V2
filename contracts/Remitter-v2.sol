@@ -39,7 +39,7 @@ contract Remitterv2 is Remitter_Data {
       oneTimeAuth[contractorId] = 0;
     }
 
-    _updateCredits(contractorId, amount);
+    _incrementPendingCredits(contractorId, amount);
   }
 
   /*
@@ -60,8 +60,6 @@ contract Remitterv2 is Remitter_Data {
   */
   function payCredit(uint contractorId, uint amount) external {
     _updateCredits(contractorId, amount);
-    PaymentPlan storage plan = paymentPlans[contractorId];
-    plan.paid += amount;
     native.safeTransferFrom(msg.sender, address(this), amount);
   }
 
@@ -72,33 +70,12 @@ contract Remitterv2 is Remitter_Data {
    | @param amount - quantity of tokens to send
   */
   function sendPayment(uint contractorId, address to, uint amount) external {
+    ownerOrAdmin(contractorId);
     require(to != address(0), "transfer to zero address");
     require(authorizedWallet[contractorId][to], "not authorized to receive payment for this ID");
     require(maxPayable(contractorId) >= amount, "not enough credit");
-    ownerOrAdmin(contractorId);
-    _sendPayment(contractorId, to, amount);
-  }
-
-  function _sendPayment(uint contractorId, address to, uint amount) internal nonReentrant {
     _updateDebits(contractorId, amount);
     native.safeTransfer(to, amount);
-  }
-
-  /*
-   | @dev admin function to create a pay-by-cycle plan for the contractor
-   |      Will restructure a contractor's existing payment plan to conform to
-   |      "cycles"
-   | @param contractorId - idenfication number of contractor
-   | @param amount - quantity of debt to add
-   | @param cycles - amount of time to expect full payment
-  */
-  function addPaymentPlan(uint contractorId, uint amount, uint cycles) external {
-    onlyAdmin();
-    require(contractors[contractorId].wallet != address(0), "contractor does not exist");
-    PaymentPlan storage plan = paymentPlans[contractorId];
-    uint total = plan.debt - plan.paid + amount;
-    plan.debt += amount;
-    plan.perCycle += (total / cycles);
   }
 
   /*
@@ -107,8 +84,7 @@ contract Remitterv2 is Remitter_Data {
    | @return - maximum credit authorized for contractor
   */
   function checkAuthorization(uint contractorId) public view returns (uint) {
-    uint _oneTimeAuth = oneTimeAuth[contractorId];
-    return Math.max(defaultAuth, _oneTimeAuth);
+    return Math.max(defaultAuth, oneTimeAuth[contractorId]);
   }
 
   /*
@@ -130,6 +106,18 @@ contract Remitterv2 is Remitter_Data {
    + and zero sum behavior should be achieved without needing to perform
    + too many operations within high-level functions.
   */
+
+  function updateState(uint[] calldata contractorIds) external {
+    onlyAdmin();
+    for (uint i = 0; i < contractorIds.length; i++) {
+      _updateState(contractorIds[i]);
+    }
+  }
+
+  function _updateState(uint contractorId) internal {
+    _updateOwed(contractorId);
+    _settleAccounts(contractorId);
+  }
 
   /*
    | @dev core accounting function - adds credits to contractor's account,
@@ -182,24 +170,11 @@ contract Remitterv2 is Remitter_Data {
   }
 
   /*
-  | @dev returns credit available to contractor, ignoring owed
-  | @param contractorId - idenfication number of contractor
-  */
-  function realCredit(uint contractorId) internal view returns (uint) {
-    (uint credit, uint debit) = checkBalances(contractorId);
-    if (credit > debit) {
-      return credit - debit;
-    } else {
-      return 0;
-    }
-  }
-
-  /*
    | @dev balances credits and debits, ensuring the remitter remains solvent
    | @param contractorId - idenfication number of contractor
   */
   function _settleAccounts(uint contractorId) internal {
-    (uint credits, uint debits) = checkBalances(contractorId);
+    (uint credits, uint debits) = _checkBalances(contractorId);
     if (credits > debits) {
       totalPendingCredits -= (credits - debits);
       totalPendingDebits -= debits;
@@ -219,8 +194,21 @@ contract Remitterv2 is Remitter_Data {
   | @dev returns current credits and debits to contractor's account
   | @param contractorId - idenfication number of contractor
   */
-  function checkBalances(uint contractorId) internal view returns (uint credit, uint debit) {
+  function _checkBalances(uint contractorId) internal view returns (uint credit, uint debit) {
     return(creditsToUser[contractorId], debitsToUser[contractorId]);
+  }
+
+  /*
+  | @dev returns credit available to contractor, ignoring owed salary
+  | @param contractorId - idenfication number of contractor
+  */
+  function _surplusCredit(uint contractorId) internal view returns (uint) {
+    (uint credit, uint debit) = _checkBalances(contractorId);
+    if (credit > debit) {
+      return credit - debit;
+    } else {
+      return 0;
+    }
   }
 
   /*
@@ -228,7 +216,8 @@ contract Remitterv2 is Remitter_Data {
   | @param contractorId - idenfication number of contractor
   */
   function maxPayable(uint contractorId) public view returns (uint) {
-    return realCredit(contractorId) + owed(contractorId);
+    (uint owed, ) = owedSalary(contractorId);
+    return _surplusCredit(contractorId) + owed;
   }
 
   /*
@@ -251,28 +240,8 @@ contract Remitterv2 is Remitter_Data {
     if(salaryOwed != 0) {
       _incrementPendingCredits(contractorId, salaryOwed);
     }
-
     if (cyclesOwed != 0) {
       contractors[contractorId].cyclesPaid += cyclesOwed;
-      uint paymentsOwed = owedPayments(contractorId);
-      if (paymentsOwed > 0) {
-        _incrementPendingDebits(contractorId, paymentsOwed);
-      }
-    }
-  }
-
-  /*
-  | @dev check the amount of money owed to the contractor via salary after payments are removed
-  | @param contractorId - idenfication number of contractor
-  | @return - credit owed to contractor, which will be added on next state update
-  */
-  function owed(uint contractorId) public view returns (uint) {
-    (uint moneyOwed,) = owedSalary(contractorId);
-    uint payments = owedPayments(contractorId);
-    if (payments > moneyOwed) {
-      return 0;
-    } else {
-      return moneyOwed - owedPayments(contractorId);
     }
   }
 
@@ -282,24 +251,9 @@ contract Remitterv2 is Remitter_Data {
   | @return - credit owed to contractor via salary
   */
   function owedSalary(uint contractorId) public view returns (uint, uint) {
-    Contractor memory contractor = contractors[contractorId];
+    Contractor storage contractor = contractors[contractorId];
     uint cyclesOwed = cycleCount - contractor.startingCycle - contractor.cyclesPaid;
     return ((cyclesOwed * contractor.perCycle), cyclesOwed);
-  }
-
-  /*
-  | @dev check the amount of money owed by contractor via payment plan
-  | @param contractorId - idenfication number of contractor
-  | @return - debit owed by contractor before salary
-  */
-  function owedPayments(uint contractorId) public view returns (uint) {
-    PaymentPlan storage plan = paymentPlans[contractorId];
-    if (plan.debt > plan.paid) {
-      uint total = plan.debt - plan.paid;
-      return Math.min(total, plan.perCycle);
-    } else {
-      return 0;
-    }
   }
 
   /*
@@ -320,20 +274,30 @@ contract Remitterv2 is Remitter_Data {
   ) external {
     onlySuperAdmin();
     require (contractorId != 0, "ID cannot be 0");
-    require(contractors[contractorId].wallet == address(0), "ID is already taken");
-    _changeName(contractorId, name);
-    _changeWallet(contractorId, walletAddress);
-    _changeSalary(contractorId, perCycle);
-    _changeStartingCycle(contractorId, startingCycle);
+    Contractor storage contractor = contractors[contractorId];
+    require(contractor.wallet == address(0), "ID is already taken");
+
+    _initializeWallet(contractorId, walletAddress);
+    contractor.name = name;
+    contractor.startingCycle = startingCycle;
+    contractor.perCycle = perCycle;
+
+    totalPayroll += perCycle;
     totalWorkers++;
   }
 
   function terminateContractor(uint contractorId) external {
     onlyAdmin();
-    _sendPayment(contractorId, contractors[contractorId].wallet, maxPayable(contractorId));
-    _changeSalary(contractorId, 0);
-    _changeWallet(contractorId, address(0));
+    uint256 amount = maxPayable(contractorId);
+    _updateDebits(contractorId, amount);
+
     totalWorkers--;
+    totalPayroll -= contractors[contractorId].perCycle;
+
+    contractors[contractorId].perCycle = 0;
+    _changeWallet(contractorId, address(0));
+
+    native.transfer(contractors[contractorId].wallet, amount);
   }
 
   /*
@@ -343,9 +307,6 @@ contract Remitterv2 is Remitter_Data {
   */
   function changeName(uint contractorId, string memory newName) external {
     ownerOrAdmin(contractorId);
-    _changeName(contractorId, newName);
-  }
-  function _changeName(uint contractorId, string memory newName) internal {
     contractors[contractorId].name = newName;
   }
 
@@ -356,23 +317,25 @@ contract Remitterv2 is Remitter_Data {
   */
   function changeWallet(uint contractorId, address newWallet) external {
     ownerOrSuperAdmin(contractorId);
+    require(newWallet != address(0), "changing wallet to zero address");
     _changeWallet(contractorId, newWallet);
   }
+
   function _changeWallet(uint contractorId, address newWallet) internal {
-    require(newWallet != address(0), "changing wallet to zero address");
     delete getId[contractors[contractorId].wallet];
+    _initializeWallet(contractorId, newWallet);
+  }
+
+  function _initializeWallet(uint contractorId, address newWallet) internal {
     contractors[contractorId].wallet = newWallet;
     getId[newWallet] = contractorId;
     authorizedWallet[contractorId][newWallet] = true;
   }
 
   function changeSalary(uint contractorId, uint newSalary) external {
-    require(contractors[contractorId].wallet != address(0), "contractor does not exist or was terminated");
     onlyAdmin();
-    _changeSalary(contractorId, newSalary);
-  }
-  function _changeSalary(uint contractorId, uint newSalary) internal {
     require(newSalary <= maxSalary, "new salary is higher than maximum");
+    require(contractors[contractorId].wallet != address(0), "contractor does not exist or was terminated");
     uint oldSalary = contractors[contractorId].perCycle;
     if (oldSalary < newSalary) {
       totalPayroll += newSalary - oldSalary;
@@ -389,15 +352,16 @@ contract Remitterv2 is Remitter_Data {
   */
   function changeStartingCycle(uint contractorId, uint newStart) external {
     ownerOrAdmin(contractorId);
-    _changeStartingCycle(contractorId, newStart);
-  }
-
-  function _changeStartingCycle(uint contractorId, uint newStart) internal {
     require(newStart >= cycleCount, "cannot start earlier than current time");
-    //TODO: do we want to actually send the payment or just update state?
-    _sendPayment(contractorId, contractors[contractorId].wallet, maxPayable(contractorId));
-    contractors[contractorId].startingCycle = newStart;
-    contractors[contractorId].cyclesPaid = 0;
+
+    uint256 amount = maxPayable(contractorId);
+    _updateDebits(contractorId, amount);
+
+    Contractor storage contractor = contractors[contractorId];
+    contractor.startingCycle = newStart;
+    contractor.cyclesPaid = 0;
+
+    native.transfer(contractor.wallet, amount);
   }
 
   function authorizeAgent(uint contractorId, address walletAddress, bool authorize) external {
@@ -425,7 +389,6 @@ contract Remitterv2 is Remitter_Data {
 
   function advanceCycle() external {
     onlySuperAdmin();
-    //TODO: require minimum amount of time passed/restrict to super admin?
     emit AdvanceCycle(cycleCount++, totalCredits, totalDebits, totalWorkers);
   }
 

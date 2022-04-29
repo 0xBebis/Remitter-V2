@@ -31,7 +31,6 @@ describe('Remitter-v2', function () {
 
   it('One contractor', async function() {
     await remitter.addContractor(999, "bebis", emp1.address, 6000, 0);
-    await remitter.connect(admin).addPaymentPlan(999, 3000, 3);
 
     const totalWorkers = await remitter.totalWorkers();
     expect(totalWorkers).to.equal(1);
@@ -39,22 +38,21 @@ describe('Remitter-v2', function () {
     const name = (await remitter.contractors(999)).name;
     expect(name).to.equal("bebis");
 
-    var owedSalary = (await remitter.owedSalary(999))[0];
+    let owedSalary = (await remitter.owedSalary(999))[0];
     expect(owedSalary).to.equal(0);
     await expect(remitter.advanceCycle()).to.emit(remitter, 'AdvanceCycle').withArgs(0, 0, 0, 1);
     owedSalary = (await remitter.owedSalary(999))[0];
     expect(owedSalary).to.equal(6000);
-    await expect(remitter.advanceCycle()).to.emit(remitter, 'AdvanceCycle').withArgs(1, 0, 0, 1);
+    await remitter.updateState([999]);
+    await expect(remitter.advanceCycle()).to.emit(remitter, 'AdvanceCycle').withArgs(1, 6000, 0, 1);
     owedSalary = (await remitter.owedSalary(999))[0];
-    expect(owedSalary).to.equal(12000);
+    expect(owedSalary).to.equal(6000);
 
     await remitter.connect(emp1).sendPayment(999, emp1.address, 9000);
-    await usdc.connect(emp1).approve(remitter.address, 1000);
-    await remitter.connect(emp1).payCredit(999, 1000);
     const balance = await usdc.balanceOf(emp1.address);
-    expect(balance).to.equal(8000);
-    await expect(remitter.advanceCycle()).to.emit(remitter, 'AdvanceCycle').withArgs(2, 13000, 10000, 1);
-    await remitter.connect(emp1).sendPayment(999, emp1.address, 6000);
+    expect(balance).to.equal(9000);
+    await expect(remitter.advanceCycle()).to.emit(remitter, 'AdvanceCycle').withArgs(2, 12000, 9000, 1);
+    await remitter.connect(emp1).sendPayment(999, emp1.address, 9000);
     await expect(remitter.connect(emp1).sendPayment(999, emp1.address, 1)).to.be.reverted;
 
     await remitter.connect(admin).addCredit(999, 2500);

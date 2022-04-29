@@ -34,13 +34,6 @@ contract Remitter_Data {
     uint cyclesPaid;
   }
 
-  struct PaymentPlan {
-    uint debt;
-    uint paid;
-    uint perCycle;
-  }
-
-  //TODO: events are inherently linked to a timestamp - is time parameter necessary?
   event NewCredit(address indexed caller, uint indexed contractorId, uint amount);
   event NewDebit(address indexed caller, uint indexed contractorId, uint amount);
   event AdvanceCycle(uint indexed cycleCount, uint credits, uint debits, uint workers);
@@ -52,7 +45,6 @@ contract Remitter_Data {
 
   uint public maxSalary;
   mapping(uint => Contractor) public contractors;
-  mapping(uint => PaymentPlan) public paymentPlans;
   mapping(uint => mapping(address => bool)) public authorizedWallet;
   mapping(address => uint) public getId;
 
