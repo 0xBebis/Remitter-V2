@@ -35,8 +35,8 @@ contract Remitterv2 is Remitter_Data {
       lastCycleAdded[contractorId] = _cycleCount;
       addedCredits[contractorId] = amount;
     }
-    if (oneTimeAuth[contractorId] > 0 && totalAmount > defaultAuth) {
-      oneTimeAuth[contractorId] = 0;
+    if (totalAmount > defaultAuth && oneTimeAuth[contractorId] != 0) {
+      delete oneTimeAuth[contractorId];
     }
 
     _incrementPendingCredits(contractorId, amount);
