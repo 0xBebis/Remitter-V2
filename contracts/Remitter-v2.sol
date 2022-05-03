@@ -277,7 +277,7 @@ contract Remitterv2 is Remitter_Data {
     Contractor storage contractor = contractors[contractorId];
     require(contractor.wallet == address(0), "ID is already taken");
 
-    _initializeWallet(contractorId, walletAddress);
+    _changeWallet(contractorId, walletAddress);
     contractor.name = name;
     contractor.startingCycle = startingCycle;
     contractor.perCycle = perCycle;
@@ -293,11 +293,14 @@ contract Remitterv2 is Remitter_Data {
     uint256 amount = maxPayable(contractorId);
     _updateDebits(contractorId, amount);
 
-    totalWorkers--;
-    totalPayroll -= contractors[contractorId].perCycle;
+    Contractor storage contractor = contractors[contractorId];
 
-    contractors[contractorId].perCycle = 0;
-    _changeWallet(contractorId, address(0));
+    totalWorkers--;
+    totalPayroll -= contractor.perCycle;
+
+    delete contractor.perCycle;
+    delete getId[contractor.wallet];
+    delete contractor.wallet;
 
     emit TerminateContractor(contractorId);
 
@@ -327,16 +330,9 @@ contract Remitterv2 is Remitter_Data {
   }
 
   function _changeWallet(uint contractorId, address newWallet) internal {
-    delete getId[contractors[contractorId].wallet];
-    _initializeWallet(contractorId, newWallet);
-  }
-
-  function _initializeWallet(uint contractorId, address newWallet) internal {
     contractors[contractorId].wallet = newWallet;
-    if (newWallet != address(0)) {
-      getId[newWallet] = contractorId;
-      authorizedWallet[contractorId][newWallet] = true;
-    }
+    getId[newWallet] = contractorId;
+    authorizedWallet[contractorId][newWallet] = true;
   }
 
   function changeSalary(uint contractorId, uint newSalary) external {
