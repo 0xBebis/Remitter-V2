@@ -325,6 +325,7 @@ contract Remitterv2 is Remitter_Data {
   function changeWallet(uint contractorId, address newWallet) external {
     ownerOrSuperAdmin(contractorId);
     require(newWallet != address(0), "changing wallet to zero address");
+    delete getId[contractors[contractorId].wallet];
     _changeWallet(contractorId, newWallet);
     emit ChangeWallet(contractorId, newWallet);
   }
