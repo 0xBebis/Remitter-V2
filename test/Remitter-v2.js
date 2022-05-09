@@ -10,7 +10,7 @@ describe('Remitter-v2', function () {
     [superAdmin, admin, emp1] = await ethers.getSigners();
 
     const USDC = await ethers.getContractFactory('TestToken');
-    usdc = await USDC.deploy();
+    usdc = await USDC.deploy('USDC', 'USDC', 6);
 
     const Remitter = await ethers.getContractFactory('Remitterv2');
     remitter = await Remitter.deploy(usdc.address, 5000, 10000);
@@ -30,33 +30,34 @@ describe('Remitter-v2', function () {
   })
 
   it('One contractor', async function() {
-    await remitter.addContractor(999, "bebis", emp1.address, 6000, 0);
+    await remitter.addContractor("bebis", emp1.address, 6000, 0);
+    const id = await remitter.getId(emp1.address);
 
     const totalWorkers = await remitter.totalWorkers();
     expect(totalWorkers).to.equal(1);
 
-    const name = (await remitter.contractors(999)).name;
+    const name = (await remitter.contractors(id)).name;
     expect(name).to.equal("bebis");
 
-    let owedSalary = (await remitter.owedSalary(999))[0];
+    let owedSalary = (await remitter.owedSalary(id))[0];
     expect(owedSalary).to.equal(0);
     await expect(remitter.advanceCycle()).to.emit(remitter, 'AdvanceCycle').withArgs(0, 0, 0, 1);
-    owedSalary = (await remitter.owedSalary(999))[0];
+    owedSalary = (await remitter.owedSalary(id))[0];
     expect(owedSalary).to.equal(6000);
-    await remitter.updateState([999]);
+    await remitter.updateState([id]);
     await expect(remitter.advanceCycle()).to.emit(remitter, 'AdvanceCycle').withArgs(1, 6000, 0, 1);
-    owedSalary = (await remitter.owedSalary(999))[0];
+    owedSalary = (await remitter.owedSalary(id))[0];
     expect(owedSalary).to.equal(6000);
 
-    await remitter.connect(emp1).sendPayment(999, emp1.address, 9000);
+    await remitter.connect(emp1).sendPayment(id, emp1.address, 9000);
     const balance = await usdc.balanceOf(emp1.address);
     expect(balance).to.equal(9000);
     await expect(remitter.advanceCycle()).to.emit(remitter, 'AdvanceCycle').withArgs(2, 12000, 9000, 1);
-    await remitter.connect(emp1).sendPayment(999, emp1.address, 9000);
-    await expect(remitter.connect(emp1).sendPayment(999, emp1.address, 1)).to.be.reverted;
+    await remitter.connect(emp1).sendPayment(id, emp1.address, 9000);
+    await expect(remitter.connect(emp1).sendPayment(id, emp1.address, 1)).to.be.reverted;
 
-    await remitter.connect(admin).addCredit(999, 2500);
-    await remitter.connect(admin).addCredit(999, 2500);
-    await expect(remitter.connect(admin).addCredit(999, 1)).to.be.reverted;
+    await remitter.connect(admin).addCredit(id, 2500);
+    await remitter.connect(admin).addCredit(id, 2500);
+    await expect(remitter.connect(admin).addCredit(id, 1)).to.be.reverted;
   })
 })

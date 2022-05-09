@@ -14,8 +14,8 @@ async function main() {
   let remitter = await remit.deployRemitter(
     "0x8B4441E79151e3fC5264733A3C5da4fF8EAc16c1",
     testToken.address,
-    ethers.utils.parseEther("4000"),
-    ethers.utils.parseEther("12000")
+    ethers.utils.parseUnits("4000", 6),
+    ethers.utils.parseUnits("12000", 6)
   );
   reaper.sleep(20000);
 
@@ -28,7 +28,7 @@ async function main() {
     await remit.hire(
       remitter.address,
       workers[i].id,
-      ethers.utils.parseEther(halfSalary),
+      ethers.utils.parseUnits(halfSalary, 6),
       0,
       workers[i].address,
       true
