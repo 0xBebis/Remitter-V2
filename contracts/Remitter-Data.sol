@@ -52,11 +52,12 @@ contract Remitter_Data {
   */
 
   uint public maxSalary;
+  uint public nonce;
   mapping(uint => Contractor) public contractors;
   mapping(uint => mapping(address => bool)) public authorizedWallet;
   mapping(address => uint) public getId;
 
-  uint cycleCount;
+  uint public cycleCount;
 
   // from user POV
   mapping(uint => uint) internal creditsToUser;

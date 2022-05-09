@@ -12,7 +12,9 @@ contract Remitterv2 is Remitter_Data {
     address native,
     uint defaultAuth,
     uint maxSalary
-  ) Remitter_Data(native, defaultAuth, maxSalary) {}
+  ) Remitter_Data(native, defaultAuth, maxSalary) {
+    isSuperAdmin[msg.sender] = true;
+  }
 
   /*
    | @dev admin function to add credit directly to contractor account
@@ -63,6 +65,16 @@ contract Remitterv2 is Remitter_Data {
     native.safeTransferFrom(msg.sender, address(this), amount);
   }
 
+  function getPaid() external {
+    uint id = getId[msg.sender];
+    _sendPayment(id, msg.sender, maxPayable(id));
+  }
+
+  function payTo(uint contractorId) external {
+    require(authorizedWallet[contractorId][msg.sender], "wallet not authorized");
+    _sendPayment(contractorId, contractors[contractorId].wallet, maxPayable(contractorId));
+  }
+
   /*
    | @dev function to send money from Remitter to contractor's approved wallet
    | @param contractorId - idenfication number of contractor
@@ -74,6 +86,10 @@ contract Remitterv2 is Remitter_Data {
     require(to != address(0), "transfer to zero address");
     require(authorizedWallet[contractorId][to], "not authorized to receive payment for this ID");
     require(maxPayable(contractorId) >= amount, "not enough credit");
+    _sendPayment(contractorId, to, amount);
+  }
+
+  function _sendPayment(uint contractorId, address to, uint amount) internal {
     _updateDebits(contractorId, amount);
     native.safeTransfer(to, amount);
   }
@@ -266,16 +282,14 @@ contract Remitterv2 is Remitter_Data {
    |                           this is only relevant for people receiving regular payments - set to 0 otherwise.
   */
   function addContractor(
-    uint contractorId,
     string memory name,
     address walletAddress,
     uint perCycle,
     uint startingCycle
   ) external {
     onlySuperAdmin();
-    require (contractorId != 0, "ID cannot be 0");
+    uint contractorId = ++nonce;
     Contractor storage contractor = contractors[contractorId];
-    require(contractor.wallet == address(0), "ID is already taken");
 
     _initializeWallet(contractorId, walletAddress);
     contractor.name = name;

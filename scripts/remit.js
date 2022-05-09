@@ -19,33 +19,22 @@ async function main() {
   let usdcContract = await reaper.createContract("ERC20", usdc);
   let oathContract = await reaper.createContract("ERC20", oath);
 
-  for(let i=0; i<workers.length; i++) {
+  for(let i=3; i<workers.length; i++) {
     console.log(workers[i].name);
-    /*if (workers[i].pay > 0) {
-      console.log(">>>USDC<<<");
-      console.log("name: "+workers[i].name);
-      console.log("pay: "+ workers[i].pay);
-      console.log("wallet: "+ workers[i].wallet);
-      //let adjusted = ethers.utils.parseUnits(workers[i].pay.toString(), 6);
-      //console.log("adjusted: " +adjusted.toString());
+    if (workers[i].pay > 0) {
       let amount = workers[i].pay + workers[i].reimbursement;
-      //console.log(amount);
       let tx = await usdcContract.transfer(workers[i].wallet, ethers.utils.parseUnits(amount.toString(), 6), { gasPrice: 400000000000 });
       await tx.wait();
       await logBalance(usdcContract);
       reaper.sleep(20000);
-    }*/
-    if (workers[i].oath > 0) {
-      /*console.log(">>>OATH<<<");
-      console.log("oath: "+ workers[i].oath);*/
-      //let adjusted = ethers.utils.parseEther(workers[i].oath.toString());
-      //console.log("adjusted: " +adjusted.toString());
+    }
+    /*if (workers[i].oath > 0) {
       let amount = workers[i].oath * 4;
       let tx = await oathContract.transfer(workers[i].oathWallet, ethers.utils.parseEther(amount.toString()), { gasPrice: 400000000000 });
       await tx.wait();
       await logBalance(oathContract);
       reaper.sleep(20000);
-    }
+    }*/
   }
 }
 

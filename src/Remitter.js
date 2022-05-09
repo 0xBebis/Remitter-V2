@@ -1,139 +1,159 @@
 const tokens = require("../tokens.json");
 const addresses = require("../Addresses.json");
 
-async function deployRemitter(superAdmin, currencyAddress, maxSalary, firstPayDay) {
-  let Remitter = await ethers.getContractFactory("RemitterFlattened");
-  let remitter = await Remitter.deploy(superAdmin, currencyAddress, maxSalary, firstPayDay);
+async function deployRemitter(nativeToken, defaultAuth, maxSalary) {
+  let Remitter = await ethers.getContractFactory("Remitterv2");
+  let remitter = await Remitter.deploy(currencyAddress, defaultAuth, maxSalary);
   return remitter;
 }
 
 async function getRemitter(remitterAddress) {
-  let Remitter = await ethers.getContractFactory("RemitterFlattened");
+  let Remitter = await ethers.getContractFactory("Remitterv2");
   let remitter = await Remitter.attach(remitterAddress);
   return remitter;
 }
 
-async function getPaid(remitterAddress) {
+async function addCredit(remitterAddress, contractorId, amount) {
   let remitter = await getRemitter(remitterAddress);
-  let tx = await remitter.getPaid();
+  let tx = await remitter.addCredit(contractorId, amount);
   let receipt = await tx.wait();
   return receipt;
 }
 
-async function payOut(remitterAddress, workerId) {
+async function addDebit(remitterAddress, contractorId, amount) {
   let remitter = await getRemitter(remitterAddress);
-  let tx = await remitter.payOut(workerId);
+  let tx = await remitter.addDebit(contractorId, amount);
   let receipt = await tx.wait();
   return receipt;
 }
 
-async function viewState(remitterAddress) {
+async function payCredit(remitterAddress, contractorId, amount) {
   let remitter = await getRemitter(remitterAddress);
-  let cycle = await remitter.cycle();
-  let cycleCount = await remitter.cycleCount();
-  let startTime = await remitter.startTime();
-  let totalPayroll = await remitter.totalPayroll();
-  let totalReimbursements = await remitter.totalReimbursements();
-  let totalWorkers = await remitter.totalWorkers();
-  let maxSalary = await remitter.maxSalary();
-  let currency = await remitter.currency();
+  let tx = await remitter.payCredit(contractorId, amount);
+  let receipt = await tx.wait();
+  return receipt;
+}
+
+async function sendPayment(remitterAddress, contractorId, to, amount) {
+  let remitter = await getRemitter(remitterAddress);
+  let tx = await remitter.sendPayment(contractorId, to, amount);
+  let receipt = await tx.wait();
+  return receipt;
+}
+
+async function checkAuthorization(remitterAddress, contractorId) {
+  let remitter = await getRemitter(remitterAddress);
+  return (await remitter.checkAuthorization(contractorId)).toString();
+}
+
+async function addAuthorizedPayment(remitterAddress, contractorId, amount) {
+  let remitter = await getRemitter(remitterAddress);
+  let tx = await remitter.addAuthorizedPayment(contractorId, amount);
+  let receipt = await tx.wait();
+  return receipt;
+}
+
+async function updateState(remitterAddress, contractorIds) {
+  let remitter = await getRemitter(remitterAddress);
+  let tx = await remitter.updateState(contractorIds);
+  let receipt = await tx.wait();
+  return receipt;
+}
+
+async function maxPayable(remitterAddress, contractorId) {
+  let remitter = await getRemitter(remitterAddress);
+  return (await remitter.maxPayable(contractorId)).toString();
+}
+
+async function owedSalary(remitterAddress, contractorId) {
+  let remitter = await getRemitter(remitterAddress);
+  let data = await remitter.owedSalary(contractorId);
   return {
-    "cycleTime": cycle.toString(),
-    "cycleCount": cycleCount.toString(),
-    "startTime": startTime.toString(),
-    "totalPayroll": totalPayroll.toString(),
-    "totalReimbursements": totalReimbursements.toString(),
-    "totalWorkers": totalWorkers.toString(),
-    "maxSalary": maxSalary.toString(),
-    "currency": currency
+    "salary": data[0],
+    "cycles": data[1]
   }
 }
 
-async function viewWorkerInfo(remitterAddress, employeeId) {
+async function addContractor(remitterAddress, name, walletAddress, perCycle, startingCycle) {
   let remitter = await getRemitter(remitterAddress);
-  let workerInfo = await remitter.workerInfo(employeeId);
-  return {
-    "salary": workerInfo[0].toString(),
-    "reimbursements": workerInfo[1].toString(),
-    "startingCycle": workerInfo[2].toString(),
-    "cyclesPaid": workerInfo[3].toString(),
-    "wallet": workerInfo[4],
-    "adminCanRemit": workerInfo[5]
-  }
-}
-
-async function hire(
-  remitterAddress,
-  workerId,
-  salary,
-  startingCycle,
-  walletAddress,
-  adminCanRemit
-) {
-  let remitter = await getRemitter(remitterAddress);
-  let tx = await remitter.hire(
-    workerId,
-    salary,
-    startingCycle,
-    walletAddress,
-    adminCanRemit
-  );
+  let tx = await remitter.addContractor(name, walletAddress, perCycle, startingCycle);
   let receipt = await tx.wait();
   return receipt;
 }
 
-async function terminate(remitterAddress, workerId) {
+async function addContractor(remitterAddress, contractorId) {
   let remitter = await getRemitter(remitterAddress);
-  let tx = await remitter.terminate(workerId);
+  let tx = await remitter.terminateContractor(contractorId);
   let receipt = await tx.wait();
   return receipt;
 }
 
-async function updateCycle(remitterAddress, newCycle) {
+async function changeName(remitterAddress, contractorId, newName) {
   let remitter = await getRemitter(remitterAddress);
-  let tx = await remitter.updateCycle(newCycle);
+  let tx = await remitter.changeName(contractorId, newName);
   let receipt = await tx.wait();
   return receipt;
 }
 
-async function updateMaxSalary(remitterAddress, newMax) {
+async function changeWallet(remitterAddress, contractorId, newWallet) {
   let remitter = await getRemitter(remitterAddress);
-  let tx = await remitter.updateMaxSalary(newMax);
+  let tx = await remitter.changeWallet(contractorId, newWallet);
   let receipt = await tx.wait();
   return receipt;
 }
 
-async function updateCurrency(remitterAddress, newCurrency) {
+async function changeSalary(remitterAddress, contractorId, newSalary) {
   let remitter = await getRemitter(remitterAddress);
-  let tx = await remitter.updateCurrency(newCurrency);
+  let tx = await remitter.changeSalary(contractorId, newSalary);
   let receipt = await tx.wait();
   return receipt;
 }
 
-async function toggleAdmin(remitterAddress, walletAddress, status) {
+async function changeStartingCycle(remitterAddress, contractorId, newStart) {
   let remitter = await getRemitter(remitterAddress);
-  let tx = await remitter.toggleAdmin(walletAddress, status);
+  let tx = await remitter.changeStartingCycle(contractorId, newStart);
   let receipt = await tx.wait();
   return receipt;
 }
 
-async function changeSuperAdmin(remitterAddress, newSuperAdmin) {
+async function authorizeAgent(remitterAddress, contractorId, walletAddress, authorize) {
   let remitter = await getRemitter(remitterAddress);
-  let tx = await remitter.changeSuperAdmin(newSuperAdmin);
+  let tx = await remitter.authorizeAgent(contractorId, walletAddress, authorize);
   let receipt = await tx.wait();
   return receipt;
 }
 
-async function toggleAdminRemittancePermission(remitterAddress, canRemit) {
+async function advanceCycle(remitterAddress) {
   let remitter = await getRemitter(remitterAddress);
-  let tx = await remitter.toggleAdminRemittancePermission(canRemit);
+  let tx = await remitter.advanceCycle(contractorId);
   let receipt = await tx.wait();
   return receipt;
 }
 
-async function updateSalary(remitterAddress, workerId, newSalary) {
+async function setDefaultAuth(remitterAddress, defaultAuth) {
   let remitter = await getRemitter(remitterAddress);
-  let tx = await remitter.updateSalary(workerId, newSalary);
+  let tx = await remitter.setDefaultAuth(defaultAuth);
+  let receipt = await tx.wait();
+  return receipt;
+}
+
+async function setMaxSalary(remitterAddress, maxSalary) {
+  let remitter = await getRemitter(remitterAddress);
+  let tx = await remitter.setMaxSalary(maxSalary);
+  let receipt = await tx.wait();
+  return receipt;
+}
+
+async function setAdmin(remitterAddress, walletAddress, isAdmin) {
+  let remitter = await getRemitter(remitterAddress);
+  let tx = await remitter.setAdmin(walletAddress, isAdmin);
+  let receipt = await tx.wait();
+  return receipt;
+}
+
+async function setSuperAdmin(remitterAddress, walletAddress, isSuperAdmin) {
+  let remitter = await getRemitter(remitterAddress);
+  let tx = await remitter.setSuperAdmin(contractorId, walletAddress, isSuperAdmin);
   let receipt = await tx.wait();
   return receipt;
 }
@@ -141,18 +161,24 @@ async function updateSalary(remitterAddress, workerId, newSalary) {
 module.exports = {
   deployRemitter,
   getRemitter,
-  viewWorkerInfo,
-  viewState,
-  getPaid,
-  payOut,
-  hire,
-  getRemitter,
-  terminate,
-  updateCycle,
-  updateMaxSalary,
-  updateCurrency,
-  toggleAdmin,
-  changeSuperAdmin,
-  toggleAdminRemittancePermission,
-  updateSalary
+  addCredit,
+  addDebit,
+  payCredit,
+  sendPayment,
+  checkAuthorization,
+  addAuthorizedPayment,
+  updateState,
+  maxPayable,
+  owedSalary,
+  addContractor,
+  changeName,
+  changeWallet,
+  changeSalary,
+  changeStartingCycle,
+  authorizeAgent,
+  advanceCycle,
+  setDefaultAuth,
+  setMaxSalary,
+  setAdmin,
+  setSuperAdmin
 }
