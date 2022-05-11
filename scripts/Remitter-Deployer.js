@@ -7,43 +7,39 @@ const { workers } = require("../src/workers.js");
 
 async function main() {
 
-  let testToken = await ethers.getContractFactory("TestToken");
+  let testToken = await reaper.deployTestToken("Test United States Dollar Coin", "tUSDC", 6);
+
   console.log(testToken.address);
   reaper.sleep(10000);
 
   let remitter = await remit.deployRemitter(
-    "0x8B4441E79151e3fC5264733A3C5da4fF8EAc16c1",
     testToken.address,
     ethers.utils.parseUnits("4000", 6),
     ethers.utils.parseUnits("12000", 6)
   );
-  reaper.sleep(20000);
+  reaper.sleep(5000);
 
   console.log(remitter.address);
 
-  await reaper.mintTestToken(testToken.address, remitter.address, ethers.utils.parseEther("10450000"));
-  reaper.sleep(20000);
+  await reaper.mintTestToken(testToken.address, remitter.address, ethers.utils.parseUnits("10450000", 6));
+  reaper.sleep(5000);
 
   for (let i=0; i<workers.length; i++) {
-    await remit.hire(
+    await remit.addContractor(
       remitter.address,
-      workers[i].id,
-      ethers.utils.parseUnits(halfSalary, 6),
+      workers[i].name,
+      workers[i].wallet,
+      ethers.utils.parseUnits((workers[i].pay).toString(), 6),
       0,
-      workers[i].address,
-      true
     );
-    let workerInfo = await remit.viewWorkerInfo(remitter.address, workers[i].id);
-    console.log(">>>WORKER INFO<<<" +workers[i].id);
+    let workerInfo = await remit.viewContractor(remitter.address, await remit.getId(remitter.address, workers[i].wallet));
+    console.log(">>>WORKER INFO<<<" +workers[i].name);
     console.log(workerInfo);
     let state = await remit.viewState(remitter.address);
-    console.log(">>>STATE<<<" +workers[i].id);
+    console.log(">>>STATE<<<" +workers[i].name);
     console.log(state);
-    reaper.sleep(30000);
+    reaper.sleep(5000);
   }
-
-  await remit.changeSuperAdmin(remitter.address, "0x111731A388743a75CF60CCA7b140C58e41D83635");
-
 }
 
   main()

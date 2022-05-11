@@ -3,7 +3,7 @@ const addresses = require("../Addresses.json");
 
 async function deployRemitter(nativeToken, defaultAuth, maxSalary) {
   let Remitter = await ethers.getContractFactory("Remitterv2");
-  let remitter = await Remitter.deploy(currencyAddress, defaultAuth, maxSalary);
+  let remitter = await Remitter.deploy(nativeToken, defaultAuth, maxSalary);
   return remitter;
 }
 
@@ -81,7 +81,7 @@ async function addContractor(remitterAddress, name, walletAddress, perCycle, sta
   return receipt;
 }
 
-async function addContractor(remitterAddress, contractorId) {
+async function terminateContractor(remitterAddress, contractorId) {
   let remitter = await getRemitter(remitterAddress);
   let tx = await remitter.terminateContractor(contractorId);
   let receipt = await tx.wait();
@@ -158,6 +158,40 @@ async function setSuperAdmin(remitterAddress, walletAddress, isSuperAdmin) {
   return receipt;
 }
 
+async function viewContractor(remitterAddress, contractorId) {
+  let remitter = await getRemitter(remitterAddress);
+  let data = await remitter.contractors(contractorId);
+  return {
+    "name": data[0],
+    "wallet": data[1],
+    "perCycle": data[2],
+    "startingCycle": data[3],
+    "cyclesPaid": data[4]
+  }
+}
+
+async function getId(remitterAddress, walletAddress) {
+  let remitter = await getRemitter(remitterAddress);
+  let data = await remitter.getId(walletAddress);
+  return data;
+}
+
+async function viewState(remitterAddress) {
+  let remitter = await getRemitter(remitterAddress);
+  return {
+    "totalPayroll": await remitter.totalPayroll(),
+    "totalPendingCredits": await remitter.totalPendingCredits(),
+    "totalPendingDebits": await remitter.totalPendingDebits(),
+    "totalCredits": await remitter.totalCredits(),
+    "totalDebits": await remitter.totalDebits(),
+    "totalWorkers": await remitter.totalWorkers(),
+    "maxSalary": await remitter.maxSalary(),
+    "nonce": await remitter.nonce(),
+    "cycleCount": await remitter.cycleCount(),
+    "defaultAuth": await remitter.defaultAuth()
+  }
+}
+
 module.exports = {
   deployRemitter,
   getRemitter,
@@ -180,5 +214,8 @@ module.exports = {
   setDefaultAuth,
   setMaxSalary,
   setAdmin,
-  setSuperAdmin
+  setSuperAdmin,
+  viewContractor,
+  getId,
+  viewState
 }

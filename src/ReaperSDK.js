@@ -8,8 +8,8 @@ async function parseToken(amount, tokenAddress) {
   if (typeof tokenAddress == "undefined") {
     decimals = 18;
   } else {
-    let TestERC20 = await ethers.getContractFactory("TestERC20");
-    let token = TestERC20.attach(tokenAddress);
+    let TestToken = await ethers.getContractFactory("TestToken");
+    let token = TestToken.attach(tokenAddress);
     decimals = await token.decimals();
   }
   let amt = amount.toString();
@@ -145,14 +145,14 @@ async function getPoolLength(chefAddress) {
 }
 
 async function deployTestToken(name, symbol, decimals) {
-  let TestERC20 = await ethers.getContractFactory("TestERC20");
-  let token = await TestERC20.deploy(name, symbol, decimals);
+  let TestToken = await ethers.getContractFactory("TestToken");
+  let token = await TestToken.deploy(name, symbol, decimals);
   return token;
 }
 
 async function getTokenMetadata(tokenAddress) {
-  let TestERC20 = await ethers.getContractFactory("TestERC20");
-  let token = TestERC20.attach(tokenAddress);
+  let TestToken = await ethers.getContractFactory("TestToken");
+  let token = TestToken.attach(tokenAddress);
   let name = await token.name();
   let symbol = await token.symbol();
   let decimals = await token.decimals();
@@ -169,8 +169,8 @@ async function getTokenMetadata(tokenAddress) {
 }
 
 async function mintTestToken(tokenAddress, userAddress, amount) {
-  let TestERC20 = await ethers.getContractFactory("TestERC20");
-  let token = await TestERC20.attach(tokenAddress);
+  let TestToken = await ethers.getContractFactory("TestToken");
+  let token = await TestToken.attach(tokenAddress);
   let tx = await token.mint(userAddress, amount);
   await tx.wait();
   let balance = await token.balanceOf(userAddress);
@@ -184,8 +184,8 @@ async function getUserBalance(userAddress, tokenAddress) {
     balance = await ethers.provider.getBalance(userAddress);
     return balance;
   } else {
-    let TestERC20 = await ethers.getContractFactory("TestERC20");
-    let token = await TestERC20.attach(tokenAddress);
+    let TestToken = await ethers.getContractFactory("TestToken");
+    let token = await TestToken.attach(tokenAddress);
     balance = await token.balanceOf(userAddress);
     return balance;
   }
@@ -203,10 +203,10 @@ async function approveMax(spenderAddress, tokenAddresses) {
   if (tokenAddresses.length == 42) {
     tokenAddresses = [tokenAddresses];
   }
-  let TestERC20 = await ethers.getContractFactory("TestERC20");
+  let TestToken = await ethers.getContractFactory("TestToken");
   let token;
   for(let i = 0; i < tokenAddresses.length; i++) {
-    token = TestERC20.attach(tokenAddresses[i]);
+    token = TestToken.attach(tokenAddresses[i]);
     let tx = await token.approve(spenderAddress, ethers.constants.MaxUint256);
     let receipt = await tx.wait();
   } return "success";
@@ -253,8 +253,8 @@ async function formatToken(amount, tokenAddress) {
   if (tokenAddress == undefined) {
     decimals = 18;
   } else {
-    let TestERC20 = await ethers.getContractFactory("TestERC20");
-    let token = TestERC20.attach(tokenAddress)
+    let TestToken = await ethers.getContractFactory("TestToken");
+    let token = TestToken.attach(tokenAddress)
     decimals = await token.decimals();
   }
   if (decimals === 18) {
