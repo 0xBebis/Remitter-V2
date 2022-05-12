@@ -1,4 +1,4 @@
-const tokens = require("../tokens.json");
+const tokens = require("../Tokens.json");
 const addresses = require("../Addresses.json");
 
 async function deployRemitter(nativeToken, defaultAuth, maxSalary) {

@@ -3,7 +3,7 @@ const tokens = require("../Tokens.json");
 const addresses = require("../Addresses.json");
 const reaper = require("../src/ReaperSDK.js");
 const remit = require("../src/Remitter.js");
-const { workers } = require("../src/workers.js");
+const { workers } = require("../src/Workers.js");
 
 async function main() {
 

@@ -1,4 +1,4 @@
-const tokens = require("../tokens.json");
+const tokens = require("../Tokens.json");
 const addresses = require("../Addresses.json");
 
 let BigGas = { gasPrice: 500000000000, gasLimit: 10000000 }
