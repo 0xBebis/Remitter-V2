@@ -1,16 +1,14 @@
 ## Byte Masons Salary Manager
 ### Use this contract to simplify paying a big team or many people
 
-Superadmin will ideally be a multisig or governance contract, and manages global state & admin privs.
-Currency is the address of the currency you're paying people in.
-MaxSalary is used to mitigate the amount of damage the admin can do.
-firstPayDay is (in UNIX timestamp) the first day you're paying people. the contract will automatically set the start time to one cycle before.
-Default cycle is 15 days but it can be whatever.
-Total Payroll helps the DAO know how much to fund the contract.
+This update to Remitter V1 changed behavior from "premissionless stream of cash,"
+which would have required a DATE+TIME library to make remotely usable, to actual
+accounting software, which seeks to record debits and credits managed by an
+administrative party (your finance department).
 
-All payments are logged in the payments mapping to serve up to employees.
-workerId is logged with the default wallet for convenience' sake so we can reference the connected wallet from the front end.
-
-The reason for making this contract is reducing the amount of multisig/governance transactions we need to pay people. We just need to fund the payment contract every pay cycle for totalPayroll.
-
-It would be pretty easy to just make the cycles one second and make a streaming contract, but you'd need to divide the salaries by however many seconds
+This system isn't trustless or permissionless, but rather practical for
+enterprise use. You can manage credits or debits from either party and settle
+everything automatically. The events and UX of this software are designed to
+align well with off-chain accounting software like Xero or Quickbooks so that
+you can leverage their APIs to automatically generate off-chain ledgers for use
+by non-crypto-native parties.
